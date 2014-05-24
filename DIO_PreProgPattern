@@ -1,4 +1,4 @@
-// Program a pattern of digital IO high/low values
+// Run a program of digital i/o high/low
 // Mostly just to blink lights.
 
 void setup(){
