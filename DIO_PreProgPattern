@@ -9,7 +9,7 @@ void setup(){
 }
 
 void loop(){
-  int s = 500
+  int s = 500;
   digitalWrite(1, HIGH); //5V ON
   delay(s);
   digitalWrite(1, LOW); //5V OFF
