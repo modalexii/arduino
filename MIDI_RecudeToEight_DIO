@@ -76,3 +76,17 @@ void OnNoteOff(byte channel, byte note, byte velocity){ //This is the function t
     digitalWrite(7, LOW); 
   }
 }
+
+// the following is an alternate solution
+// this is more graceful but requires that ping 0-8 are used,
+// whereas the above could use any 8 pins, sequential or not.
+
+//void OnNoteOn(byte channel, byte note, byte velocity){ //This is the function that handles NoteOn events
+//  int reducedNote = note % 8;
+//  digitalWrite(reducedNote, HIGH); 
+//}
+ 
+//void OnNoteOff(byte channel, byte note, byte velocity){ //This is the function that handles NoteOff events
+//  int reducedNote = note % 8;
+//  digitalWrite(reducedNote, LOW); 
+//}
