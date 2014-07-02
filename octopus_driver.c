@@ -2,6 +2,7 @@
 // per switch in Digital I/O 8
 // Reads pattern speed from 100k Pot in Analog Read 0
 
+
 void setup(){
   Serial.begin(9600);
   
@@ -13,9 +14,9 @@ void setup(){
   pinMode(5, OUTPUT); 
   pinMode(6, OUTPUT);
   pinMode(7, OUTPUT);
-  pinMode(8, INPUT_PULLUP);   // mode switch
-  pinMode(9, INPUT_PULLUP);   // pattern select 1
-  pinMode(10, INPUT_PULLUP);  // pattern select 2
+  pinMode(8, INPUT_PULLUP);   // pattern select 1
+  pinMode(9, INPUT_PULLUP);   // pattern select 2
+  pinMode(10, INPUT_PULLUP);  // mode switch
       
   usbMIDI.setHandleNoteOn(OnNoteOn); // MIDI NoteOn event handler
   usbMIDI.setHandleNoteOff(OnNoteOff); // MIDI NoteOff event handler
@@ -31,9 +32,11 @@ void OnNoteOff(byte channel, byte note, byte velocity){
   digitalWrite(reducedNote, LOW); // 5v off corresponding pin
 }
 
+
 int getVal() {
- return analogRead(0);
+ return analogRead(6);
 }
+
 
 void next() {
   // read delay from pot, then start delay
@@ -41,9 +44,10 @@ void next() {
  delay(s);
 }
 
+
 void runPatternA(){
   // strobe (all lights)
-  
+  Serial.println("LAUNCH A");
   digitalWrite(0, HIGH);
   digitalWrite(1, HIGH);
   digitalWrite(2, HIGH);
@@ -63,10 +67,11 @@ void runPatternA(){
   digitalWrite(7, LOW);
   next();
 }
+
 
 void runPatternB(){
   // chase 
-  
+  Serial.println("LAUNCH B");
   digitalWrite(0, HIGH);
   digitalWrite(3, HIGH);
   digitalWrite(6, HIGH);
@@ -120,9 +125,11 @@ void runPatternB(){
   digitalWrite(1, LOW);
   digitalWrite(4, LOW);
 }
+
 
 void runPatternC(){
   // alternate
+  Serial.println("LAUNCH C");
   digitalWrite(0, HIGH);
   digitalWrite(2, HIGH);
   digitalWrite(4, HIGH);
@@ -143,8 +150,10 @@ void runPatternC(){
   digitalWrite(7, LOW);
 }
 
+
 void runPatternD(){
   // circle
+  Serial.println("LAUNCH D");
   digitalWrite(0, HIGH);
   next();
   digitalWrite(0, LOW);
@@ -170,6 +179,7 @@ void runPatternD(){
   next();
   digitalWrite(7, LOW);
 }
+
 
 void runPatternError(){
   Serial.println("Launch Pattern ERROR");
@@ -182,12 +192,13 @@ void runPatternError(){
   digitalWrite(6, LOW);
 }
 
+
 void selectAndRunPattern(){
   // read switch positions to select pattern
   Serial.println("New Pattern Poll");
   
-  boolean patternSelect1 = digitalRead(9);
-  boolean patternSelect2 = digitalRead(10);
+  boolean patternSelect1 = digitalRead(8);
+  boolean patternSelect2 = digitalRead(9);
   
    Serial.println(patternSelect1);
    Serial.println(patternSelect2);
@@ -205,9 +216,10 @@ void selectAndRunPattern(){
   }
 }
 
+
 void loop(){
   // If switch is closed, go in to MIDI mode, else go in to pattern mode
-  if (digitalRead(8)){
+  if (digitalRead(10)){
     Serial.println("Enter MIDI Mode");
     usbMIDI.read();
   } else {
