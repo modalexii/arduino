@@ -2,18 +2,25 @@
 
 void setup() { }
 
-void repeat_single_stroke(char key, int count, int pause) {
-  Keyboard.set_key1(key);
-  int s;
-  for ( s = 0; s < count; s++ ) {
+void keystroke(char key, int repeats, unsigned long pause) {
+  // press & immediately release KEY
+  // loop REPEATS times
+  // wait PAUSE ms after each keyup
+  int n;
+  unsigned long end_pause;
+  for ( n = 0; n < repeats; n++ ) {
+    Keyboard.set_key1(key);
     Keyboard.send_now();
-    delay(pause);
+    Keyboard.set_key1(0);
+    Keyboard.send_now();
+    end_pause = millis() + pause;
+    while(millis() < end_pause) { }
   }
 }
 
 void loop() {
   
-  delay(5000); // get past POST
+  delay(5000); // wait for computer to init usb
   
   Keyboard.set_modifier(0);
   Keyboard.set_key1(0);
@@ -24,57 +31,39 @@ void loop() {
   Keyboard.set_key6(0);
   
   // enter BIOS setup
-  repeat_single_stroke(KEY_F12, 8, 700);
-  repeat_single_stroke(KEY_DOWN, 2, 700);
-  Keyboard.set_key1(KEY_ENTER);
-  Keyboard.send_now();
-  delay(1000);
+  keystroke(KEY_F12, 8, 700);
+  keystroke(KEY_DOWN, 2, 100);
+  keystroke(KEY_ENTER, 1, 2000);
   
   // disable camera
-  repeat_single_stroke(KEY_DOWN, 6, 500);
-  Keyboard.set_key1(KEY_SPACE);
-  Keyboard.send_now();
-  repeat_single_stroke(KEY_DOWN, 8, 500);
-  Keyboard.set_key1(KEY_TAB);
-  Keyboard.send_now();
-  repeat_single_stroke(KEY_DOWN, 2, 500);
-  Keyboard.set_key1(KEY_SPACE);
-  Keyboard.send_now();
+  keystroke(KEY_DOWN, 5, 80);
+  keystroke(KEY_SPACE, 1, 80);
+  keystroke(KEY_DOWN, 8, 80);
+  keystroke(KEY_TAB, 1, 80);
+  keystroke(KEY_DOWN, 2, 80);
+  keystroke(KEY_SPACE, 1, 80);;
   
   // disable radios
-  repeat_single_stroke(KEY_TAB, 4, 500);
-  repeat_single_stroke(KEY_DOWN, 7, 500);
-  Keyboard.set_key1(KEY_SPACE);
-  Keyboard.send_now();
-  repeat_single_stroke(KEY_SPACE, 2, 500);
-  Keyboard.set_key1(KEY_TAB);
-  Keyboard.send_now();
-  Keyboard.set_key1(KEY_SPACE);
-  Keyboard.send_now();
-  Keyboard.set_key1(KEY_DOWN);
-  Keyboard.send_now();
-  Keyboard.set_key1(KEY_SPACE);
-  Keyboard.send_now();
-  Keyboard.set_key1(KEY_RIGHT);
-  Keyboard.send_now();
-  Keyboard.set_key1(KEY_SPACE);
-  Keyboard.send_now();
+  keystroke(KEY_TAB, 4, 80);
+  keystroke(KEY_DOWN, 7, 80);
+  keystroke(KEY_SPACE, 1, 80);
+  keystroke(KEY_DOWN, 2, 80);
+  keystroke(KEY_TAB, 1, 80);
+  keystroke(KEY_SPACE, 1, 80);
+  keystroke(KEY_DOWN, 1, 80);
+  keystroke(KEY_SPACE, 1, 80);
+  keystroke(KEY_RIGHT, 1, 80);
+  keystroke(KEY_SPACE, 1, 80);
   
   // apply
-  Keyboard.set_key1(KEY_TAB);
-  Keyboard.send_now();
-  Keyboard.set_key1(KEY_RIGHT);
-  Keyboard.send_now();
-  Keyboard.set_key1(KEY_ENTER);
-  Keyboard.send_now();
-  delay(5000);
+  keystroke(KEY_TAB, 1, 80);
+  keystroke(KEY_RIGHT, 1, 80);
+  keystroke(KEY_ENTER, 1, 2500);
   
   // exit
-  repeat_single_stroke(KEY_TAB, 2, 500);
-  Keyboard.set_key1(KEY_RIGHT);
-  Keyboard.send_now();
-  Keyboard.set_key1(KEY_ENTER);
-  Keyboard.send_now();
+  keystroke(KEY_TAB, 2, 80);
+  keystroke(KEY_RIGHT, 1, 80);
+  keystroke(KEY_ENTER, 1, 80);
   
   // wait forever, do not loop
   while(true) { }
