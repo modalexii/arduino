@@ -1,7 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #define PIXEL_PIN    6 
-#define PIXEL_COUNT 120
+#define PIXEL_COUNT 144
 
 // Parameter 1 = number of pixels in strip,  neopixel stick has 8
 // Parameter 2 = pin number (most are valid)
@@ -44,5 +44,6 @@ uint32_t Wheel(byte WheelPos) {
 }
 
 void loop() {
-  rainbowCycle(20);
+  //rainbowCycle(20);
+  rainbowCycle(10);
 }
