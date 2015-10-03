@@ -96,7 +96,21 @@ void setup(){
   
 }
 
+void drawScreen(int *matrix[]) {
+
+  // given a 2d array representing the display, show it
+
+  for(int x = 0; x <= MATRIX_WIDTH; x++) {
+    for(int y = 0; y <= MATRIX_HEIGHT; y++) {
+      matrix.drawPixel(x,y,matrix[y][x]);
+  }
+
+  matrix.show();
+
+}
+
 void reverse(int a[], int sz) {
+  // supports rotate()
   int i, j;
   for (i = 0, j = sz; i < j; i++, j--) {
     int tmp = a[i];
@@ -122,7 +136,6 @@ void advanceDisplay(int *matrix[], int amount) {
   }
   
 }
-
 
 uint32_t Wheel(byte WheelPos) {
   
@@ -156,18 +169,28 @@ void rainbowCycle(uint8_t rpt) {
     strip.show();
     delay(10);
   }
+
 }
 
-void triangleMarquee(int rpt) {
+void triangleMarquee_H(int rpt) {
+  for(int iter = 0; iter < rpt; iter++) {
+
+    drawScreen(triangleBase);
+
+    delay(200);
+    
+    for(int row = 0; row <= MATRIX_HEIGHT; row++) {
+      rotate(triangleBase, MATRIX_HEIGHT, 1);
+    }
+  
+  }
+}
+
+void triangleMarquee_V(int rpt) {
   for(int iter = 0; iter < rpt; iter++) {
     
-    for(int x = 0; x <= MATRIX_WIDTH; x++) {
-      for(int y = 0; y <= MATRIX_HEIGHT; y++) {
-        matrix.drawPixel(x,y,triangleBase[y][x]);
-      }
-    }
+    drawScreen(triangleBase);
     
-    matrix.show();
     delay(500);
     
     for(int row = 0; row <= MATRIX_HEIGHT; row++) {
@@ -180,13 +203,8 @@ void triangleMarquee(int rpt) {
 void stripeMarquee1(int rpt) {
   for(int iter = 0; iter < rpt; iter++) {
     
-    for(int x = 0; x <= MATRIX_WIDTH; x++) {
-      for(int y = 0; y <= MATRIX_HEIGHT; y++) {
-        matrix.drawPixel(x,y,stripeBase1[y][x]);
-      }
-    }
-    
-    matrix.show();
+    drawScreen(stripeBase1);
+
     delay(100);
     
     for(int row = 0; row <= MATRIX_HEIGHT; row++) {
@@ -239,12 +257,7 @@ void breathRandomColor(int rpt) {
 
     for(int i = 0; i < MATRIX_BRIGHTNESS; i++) {
       matrix.setBrightness(i);
-      for(int x = 0; x <= MATRIX_WIDTH; x++) {
-        for(int y = 0; y <= MATRIX_HEIGHT; y++) {
-          matrix.drawPixel(x,y,solid[y][x]);
-        }
-      }
-      matrix.show();
+      drawScreen(solid);
       delay(10);
     }
     
@@ -252,12 +265,7 @@ void breathRandomColor(int rpt) {
     
     for(int i = MATRIX_BRIGHTNESS; i >= 0; i--) {
       matrix.setBrightness(i);
-      for(int x = 0; x <= MATRIX_WIDTH; x++) {
-        for(int y = 0; y <= MATRIX_HEIGHT; y++) {
-          matrix.drawPixel(x,y,solid[y][x]);
-        }
-      }
-      matrix.show();
+      drawScreen(solid);
       delay(10);
     }
     
@@ -269,7 +277,7 @@ void breathRandomColor(int rpt) {
 void loop(){
   //matrix.fillScreen(0);
   if(digitalRead(A1) == LOW) {
-    triangleMarquee(4);
+    triangleMarquee_V(MATRIX_HEIGHT*2);
   }
   if(digitalRead(A2) == LOW) {
     stripeMarquee1(15);
