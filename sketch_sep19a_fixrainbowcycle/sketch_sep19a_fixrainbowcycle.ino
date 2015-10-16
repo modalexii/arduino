@@ -10,9 +10,12 @@
 #define DATA_PIN 6
 #define PIXEL_COUNT 144 // only for rainbow cycle mode
 
-const int MATRIX_WIDTH = 18;
-const int MATRIX_HEIGHT = 8;
-const int MATRIX_BRIGHTNESS = 85;
+#define MATRIX_WIDTH 18
+#define MATRIX_HEIGHT 8
+//const int MATRIX_WIDTH = 18;
+//const int MATRIX_HEIGHT = 8;
+const int MATRIX_BRIGHTNESS = 65;
+
 
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(
   MATRIX_WIDTH,
@@ -74,12 +77,20 @@ int lineBase[8][18] = {
 	{63488,00000,63488,00000,63488,00000,63488,00000,63488,00000,63488,00000,63488,00000,63488,00000,63488,00000}
 };
 
+int pumpkin[8][18] = {
+	{58976,58976,58976,58976,58976,413,58976,58976,58976,58976,58976,413,58976,58976,58976,58976,58976,413},
+	{413,58976,58976,58976,413,413,413,58976,58976,58976,413,413,413,58976,58976,58976,413,413},
+	{413,413,58976,413,413,413,413,413,58976,413,413,413,413,413,58976,413,413,413},
+	{413,413,413,413,413,413,413,413,413,413,413,413,413,413,413,413,413,413},
+	{413,413,413,413,413,413,413,413,413,413,413,413,413,413,413,413,413,413},
+	{413,413,58976,413,413,413,413,413,58976,413,413,413,413,413,58976,413,413,413},
+	{413,58976,58976,58976,413,413,413,58976,58976,58976,413,413,413,58976,58976,58976,413,413},
+	{58976,58976,58976,58976,58976,413,58976,58976,58976,58976,58976,413,58976,58976,58976,58976,58976,413}
+};
 
 void setup(){
   
   matrix.begin();
-  matrix.setBrightness(MATRIX_BRIGHTNESS);
-
   
   pinMode(A1, INPUT_PULLUP);
   digitalWrite(A1, HIGH);
@@ -92,17 +103,21 @@ void setup(){
   pinMode(A5, INPUT_PULLUP);
   digitalWrite(A5, HIGH);
   
+  pinMode(A6, INPUT);
+  digitalWrite(A6, LOW);
+  
   //Serial.begin(9600);
   
 }
 
-void drawScreen(int *matrix[]) {
+void drawScreen(int pixelArray[][MATRIX_WIDTH]) {
 
   // given a 2d array representing the display, show it
 
   for(int x = 0; x <= MATRIX_WIDTH; x++) {
     for(int y = 0; y <= MATRIX_HEIGHT; y++) {
-      matrix.drawPixel(x,y,matrix[y][x]);
+      matrix.drawPixel(x,y,pixelArray[y][x]);
+    }
   }
 
   matrix.show();
@@ -126,14 +141,6 @@ void rotate(int array[], int size, int amt) {
   reverse(array, size-amt-1);
   reverse(array+size-amt, amt-1);
   reverse(array, size-1);
-  
-}
-
-void advanceDisplay(int *matrix[], int amount) {
-  
-  for(int row = 0; row <= MATRIX_HEIGHT; row++) {
-    rotate(matrix[row], MATRIX_WIDTH, amount);
-  }
   
 }
 
@@ -172,29 +179,15 @@ void rainbowCycle(uint8_t rpt) {
 
 }
 
-void triangleMarquee_H(int rpt) {
+void marquee(int pixelArray[][MATRIX_WIDTH], int rpt) {
   for(int iter = 0; iter < rpt; iter++) {
 
-    drawScreen(triangleBase);
+    drawScreen(pixelArray);
 
     delay(200);
     
     for(int row = 0; row <= MATRIX_HEIGHT; row++) {
-      rotate(triangleBase, MATRIX_HEIGHT, 1);
-    }
-  
-  }
-}
-
-void triangleMarquee_V(int rpt) {
-  for(int iter = 0; iter < rpt; iter++) {
-    
-    drawScreen(triangleBase);
-    
-    delay(500);
-    
-    for(int row = 0; row <= MATRIX_HEIGHT; row++) {
-      rotate(triangleBase[row], MATRIX_WIDTH, 1);
+      rotate(pixelArray[row], 18, 1);
     }
   
   }
@@ -276,8 +269,11 @@ void breathRandomColor(int rpt) {
 
 void loop(){
   //matrix.fillScreen(0);
+  
+  matrix.setBrightness(analogRead(A6)/4);
+
   if(digitalRead(A1) == LOW) {
-    triangleMarquee_V(MATRIX_HEIGHT*2);
+    marquee(pumpkin,6);
   }
   if(digitalRead(A2) == LOW) {
     stripeMarquee1(15);
