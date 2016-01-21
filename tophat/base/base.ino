@@ -1,55 +1,28 @@
-#include <Adafruit_GFX.h>
-#include <Adafruit_NeoMatrix.h>
-#include <Adafruit_NeoPixel.h>
-#ifndef PSTR
- #define PSTR // Make Arduino Due happy
-#endif
+#include <OctoWS2811.h>
+
+const int ledsPerStrip = 150*2;
+
+DMAMEM int displayMemory[ledsPerStrip*6];
+int drawingMemory[ledsPerStrip*6];
+
+const int config = WS2811_GRB | WS2811_800kHz;
+
+OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config);
 
 #define DATA_PIN 6
 #define PIXEL_COUNT 144 // only for rainbow cycle mode
 #define SIZEOF_ARRAY(x)  (sizeof (x) / sizeof (x[0]) )
 
-#define MATRIX_WIDTH 18
-#define MATRIX_HEIGHT 8
+#define MATRIX_WIDTH 38
+#define MATRIX_HEIGHT 11 // count from 0 (set to 4 if 5 physical rows)
 //const int MATRIX_BRIGHTNESS = 65;
-
-Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(
-  MATRIX_WIDTH,
-  MATRIX_HEIGHT,
-  DATA_PIN,
-  NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT +
-  NEO_MATRIX_ROWS   + NEO_MATRIX_ZIGZAG,
-  NEO_GRB           + NEO_KHZ800 
-);
-
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(
-  // only for rainbow cycle mode 
-  PIXEL_COUNT,
-  DATA_PIN,
-  NEO_GRB + NEO_KHZ800
-);
 
 void setup(){
   
-  matrix.begin();
+  leds.begin();
+  //leds.setBrightness(analogRead(A6)/4);
   
-  pinMode(A0, INPUT_PULLUP);
-  digitalWrite(A0, HIGH);
-  pinMode(A1, INPUT_PULLUP);
-  digitalWrite(A1, HIGH);
-  pinMode(A2, INPUT_PULLUP);
-  digitalWrite(A2, HIGH);
-  pinMode(A3, INPUT_PULLUP);
-  digitalWrite(A3, HIGH);
-  pinMode(A4, INPUT_PULLUP);
-  digitalWrite(A4, HIGH);
-  pinMode(A5, INPUT_PULLUP);
-  digitalWrite(A5, HIGH);
-  
-  pinMode(A6, INPUT);
-  digitalWrite(A6, LOW);
-  
-  //Serial.begin(9600);
+  Serial.begin(9600);
   
 }
 
@@ -108,28 +81,86 @@ int diamonds[8][18] = {
 	{58976,58976,58976,58976,58976,413,58976,58976,58976,58976,58976,413,58976,58976,58976,58976,58976,413}
 };
 
-int tvTest[8][18] = {
-	{48631,48631,48608,48608,1527,1527,1504,1504,47127,47127,47104,47104,23,23,65535,65535,0,0},
-	{48631,48631,48608,48608,1527,1527,1504,1504,47127,47127,47104,47104,23,23,65535,65535,0,0},
-	{48631,48631,48608,48608,1527,1527,1504,1504,47127,47127,47104,47104,23,23,65535,65535,0,0},
-	{48631,48631,48608,48608,1527,1527,1504,1504,47127,47127,47104,47104,23,23,65535,65535,0,0},
-	{48631,48631,48608,48608,1527,1527,1504,1504,47127,47127,47104,47104,23,23,65535,65535,0,0},
-	{23,23,0,0,47127,47127,0,0,1527,1527,0,0,48631,48631,0,0,0,0},
-	{265,265,265,0,0,0,12300,12300,12300,0,0,0,0,23210,46550,0,0,0},
-	{265,265,265,0,0,0,12300,12300,12300,0,0,0,0,23210,46550,0,0,0}
+int narrow[10][38]= {
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000},
+  {0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000,0xff0000,0xff0000,0xff0000,0xffff00,0xffff00,0xffff00,0x00ff00,0x00ff00,0x00ff00,0x00ffff,0x00ffff,0x00ffff,0x0000ff,0x0000ff,0x0000ff,0x000000,0x000000,0x000000,0x000000}
 };
 
+
+/*
 void drawScreen(int pixelArray[][MATRIX_WIDTH]) {
 
   // given a 2d array representing the display, show it
 
   for(int x = 0; x <= MATRIX_WIDTH; x++) {
     for(int y = 0; y <= MATRIX_HEIGHT; y++) {
-      matrix.drawPixel(x,y,pixelArray[y][x]);
+      leds.drawPixel(x,y,pixelArray[y][x]);
     }
   }
 
-  matrix.show();
+  leds.show();
+
+}
+*/
+
+void drawScreen(int pixelArray[][MATRIX_WIDTH]) {
+
+  // given a 2d array representing the display, show it
+
+  int pixel = 0;
+
+  for (int row = 0; row <= MATRIX_HEIGHT; row++) {
+    for (int col = 0; col <= MATRIX_WIDTH; col++) {
+      leds.setPixel(pixel, pixelArray[row][col]);
+      pixel++;
+    }
+  }
+
+  leds.show();
+
+}
+
+void drawScreenSnake(int pixelArray[][MATRIX_WIDTH]) {
+
+  // given a 2d array representing the display, show it
+
+  int pixel = 0;
+
+  for (int row = 0; row <= MATRIX_HEIGHT; row++) {
+    if (row % 2 == 0) {
+      for (int col = 0; col <= MATRIX_WIDTH-1; col++) {
+        Serial.print(row);
+        Serial.print(", ");
+        Serial.print(col);
+        Serial.print(", ");
+        Serial.print(pixel);
+        Serial.println(" EVEN");
+        leds.setPixel(pixel, pixelArray[row][col]);
+        pixel++;
+      }
+    } else {
+      for (int col = MATRIX_WIDTH-1; col >= 0; col--) {
+        Serial.print(row);
+        Serial.print(", ");
+        Serial.print(col);
+        Serial.print(", ");
+        Serial.print(pixel);
+        Serial.println(" ODD");
+        leds.setPixel(pixel, pixelArray[row][col]);
+        pixel++;
+      }
+    }
+  }
+
+  leds.show();
 
 }
 
@@ -152,7 +183,7 @@ void rotate(int array[], int size, int amt) {
   reverse(array, size-1);
   
 }
-
+/*
 uint32_t Wheel(byte WheelPos) {
   
   // Input a value 0 to 255 to get a color value.
@@ -172,21 +203,21 @@ uint32_t Wheel(byte WheelPos) {
 }
 
 void rainbowCycle(uint8_t rpt) {
-  
-  strip.begin(); // only for rainbow cycle mode 
-  strip.setBrightness(100);
-  strip.show(); // only for rainbow cycle mode 
+
+  strip.begin();
+  strip.setBrightness(150);
+  strip.show();
   
   uint16_t i, j;
 
-  for(j = 0; j < 256 * rpt; j++) { 
+  for(j=0; j<256*rpt; j++) {
     for(i=0; i< strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel( ( (i * 256 / strip.numPixels() ) + j) & 255) );
+      strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
     }
     strip.show();
     delay(10);
   }
-
+  
 }
 
 void marquee(int pixelArray[][MATRIX_WIDTH], int rpt) {
@@ -202,7 +233,7 @@ void marquee(int pixelArray[][MATRIX_WIDTH], int rpt) {
   
   }
 }
-/*
+
 void vMarquee(int pixelArray[][MATRIX_WIDTH], int rpt) {
    for(int iter = 0; iter < rpt; iter++) {
      
@@ -221,7 +252,7 @@ void vMarquee(int pixelArray[][MATRIX_WIDTH], int rpt) {
      
    }
 }
-*/
+
 void stripeMarquee1(int rpt) {
   for(int iter = 0; iter < rpt; iter++) {
     
@@ -244,18 +275,18 @@ void lineWipe(int rpt) {
     
     for(int x = 0; x <= MATRIX_WIDTH; x++) {
       for(int y = 0; y <= MATRIX_HEIGHT; y++) {
-        matrix.drawPixel(x,y,lineBase[y][x]);
+        leds.drawPixel(x,y,lineBase[y][x]);
       }
-      matrix.show();
+      leds.show();
       delay(250);
     }
     
     for(int x = 0; x <= MATRIX_WIDTH; x++) {
       for(int y = 0; y <= MATRIX_HEIGHT; y++) {
-        matrix.drawPixel(x,y,black[y][x]);
+        leds.drawPixel(x,y,black[y][x]);
       }
       delay(250);
-      matrix.show();
+      leds.show();
     }
    
   }
@@ -267,7 +298,7 @@ void breathRandomColor(int rpt) {
     uint16_t r = random(0,255);
     uint16_t g = random(0,255);
     uint16_t b = random(0,255);
-    uint16_t c = matrix.Color(r,g,b);
+    uint16_t c = leds.Color(r,g,b);
     
     int solid[8][18] = {
 	{c,c,c,c,c,c,c,c,c,c,c,c,c,c,c,c,c,c},
@@ -281,7 +312,7 @@ void breathRandomColor(int rpt) {
     };
 
     for(int i = 0; i < analogRead(A6)/4; i++) {
-      matrix.setBrightness(i);
+      leds.setBrightness(i);
       drawScreen(solid);
       delay(10);
     }
@@ -289,7 +320,7 @@ void breathRandomColor(int rpt) {
     delay(100);
     
     for(int i = analogRead(A6)/4; i >= 0; i--) {
-      matrix.setBrightness(i);
+      leds.setBrightness(i);
       drawScreen(solid);
       delay(10);
     }
@@ -298,36 +329,36 @@ void breathRandomColor(int rpt) {
     
   }
 }
+*/
+void loop() {
 
-void setLuminosity() {
-  matrix.setBrightness(analogRead(A6)/4);
-}
-
-void loop(){
+  drawScreenSnake(narrow);
+  /*
   
-  setLuminosity();
   if(digitalRead(A0) == LOW) {
     marquee(diamonds,12);
   }
-  setLuminosity();
+
   if(digitalRead(A1) == LOW) {
     stripeMarquee1(20);
   }
-  setLuminosity();
+
   if(digitalRead(A2) == LOW) {
     rainbowCycle(5);
   }
-  setLuminosity();
+
   if(digitalRead(A3) == LOW) {
      lineWipe(2);
   }
-  setLuminosity();
+
   if(digitalRead(A4) == LOW) {
      breathRandomColor(5);
   }
-  setLuminosity();
+
   if(digitalRead(A5) == LOW) {
-     marquee(tvTest,MATRIX_WIDTH*3);
+     //
   }
+
+  */
 
 }
