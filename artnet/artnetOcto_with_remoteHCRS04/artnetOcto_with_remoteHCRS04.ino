@@ -7,9 +7,14 @@
 
 #define BETWEEN(value, min, max) (value < max && value > min)
 
+// Controller setup
+char ctrlrIDLetter = A; // change ID to value A-L
+int ctrlrID = ctrlrIDLetter - '0' - 16; // convert to int so A->1, B->2, etc, preferred over 12 case switch)
+int networkOctet = 100 + ctrlrID;
+
 // OctoWS2811 setup
-const int ledsPerStrip = 150; // change for your setup
-const byte numStrips= 2; // change for your setup
+const int ledsPerStrip = 115;
+const byte numStrips= 2;
 DMAMEM int displayMemory[ledsPerStrip*6];
 int drawingMemory[ledsPerStrip*6];
 const int config = WS2811_GRB | WS2811_800kHz;
@@ -17,32 +22,30 @@ OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config);
 
 // Artnet setup
 Artnet artnet;
-const int startUniverse = 0; // CHANGE FOR YOUR SETUP most software this is 1, some software send out artnet first universe as zero.
-const int numberOfChannels = ledsPerStrip * numStrips * 3; // Total number of channels you want to receive (1 led = 3 channels)
-byte channelBuffer[numberOfChannels]; // Combined universes into a single array
+const int startUniverse = 0;
+const int numberOfChannels = ledsPerStrip * numStrips * 3; 
+byte channelBuffer[numberOfChannels]; 
 const int maxUniverses = numberOfChannels / 512 + ((numberOfChannels % 512) ? 1 : 0);
 bool universesReceived[maxUniverses];
 bool sendFrame = 1;
 
 // ArtNet remote control setup
-byte serverIP[] = {10,0,0,54};
+byte serverIP[] = {10,0,1,1};
 unsigned int artNetPort = 6454;
 const int remoteUniverse = 0;
 const int numChannels=512;
 char ANProtoHead[8]="Art-Net";
 const int ANProtoHeaderSize=17;
 short OpOutput= 0x5000;
-byte DmxBuffer[numChannels]; //buffer used for Dmx data
+byte DmxBuffer[numChannels];
 EthernetUDP Udp;
 byte  ArtDmxBuffer[(ANProtoHeaderSize+numChannels)+8+1];
 elapsedMillis remoteTimer;
 const int remoteFrequency = 1000;
 
-// Network setup
-//byte ip[] = {192, 168, 1, 175};
-//byte mac[] = {0x22, 0x09, 0x05, 0x20, 0x69, 0x2C};
-byte ip[] = {10,0,0,12};
-byte mac[] = {0x04, 0xE9, 0xEE, 0x00, 0x69, 0xEC};
+// Network setup 
+byte ip[] = {10,0,1,networkOctet};
+byte mac[] = {0x04, 0xE9, 0xEE, 0x00, 0x69, ctrlrIDLetter};
 
 // HC-SR04 sensor setup
 #define TRIGGER_PIN_A 3
@@ -135,6 +138,9 @@ void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* d
 }
 
 void initTest() {
+
+  // init strips in order in sets of 3
+  delay(1000 * (ctrlrID % 4));
   
   for (int i = 0 ; i < ledsPerStrip * numStrips ; i++)
     leds.setPixel(i, 127, 0, 0);
