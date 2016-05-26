@@ -1,7 +1,8 @@
 #include <OctoWS2811.h>
 
-const int ledsPerStrip = 150*2;
-#define LED_LAYOUT     0
+const int ledsPerStrip = 115*4;
+const int totalLEDs = 115*8;
+int brightness = 200;
 
 DMAMEM int displayMemory[ledsPerStrip*6];
 int drawingMemory[ledsPerStrip*6];
@@ -29,9 +30,7 @@ void loop() {
   // uncomment for voltage controlled speed
   // millisec = analogRead(A9) / 40;
 
-  colorWipe(RED, microsec);
-  colorWipe(GREEN, microsec);
-  colorWipe(BLUE, microsec);
+  rainbowCycle(10);
 
 }
 
@@ -44,4 +43,44 @@ void colorWipe(int color, int wait)
   }
   delay(500);
 }
+
+uint32_t Wheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return getRGBL(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return getRGBL(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return getRGBL(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
+
+void fillSection(const int section[], uint32_t color) {
+  for (int i=section[0]; i <= section[1]; i++) {
+    leds.setPixel(i,color);
+  }
+  leds.show();
+}
+
+void rainbowCycle(uint8_t wait) {
+  uint16_t i, j;
+
+  for(j=0; j<256; j++) { 
+    for(i=0; i< totalLEDs; i++) {
+      leds.setPixel(i, Wheel(((i * 256 / totalLEDs) + j) & 255));
+    }
+    leds.show();
+    delay(wait);
+  }
+}
+
+uint32_t getRGBL(uint8_t r, uint8_t g, uint8_t b) {
+  r = (r * brightness) >> 8;
+  g = (g * brightness) >> 8;
+  b = (b * brightness) >> 8;
+  return (r << 16) | (g << 8) | b;
+}
+
 
