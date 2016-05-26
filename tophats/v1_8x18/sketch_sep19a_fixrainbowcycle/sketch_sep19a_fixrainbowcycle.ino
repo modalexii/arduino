@@ -193,24 +193,7 @@ void marquee(int pixelArray[][MATRIX_WIDTH], int rpt) {
   }
 }
 
-void vMarquee(int pixelArray[][MATRIX_WIDTH], int rpt) {
-   for(int iter = 0; iter < rpt; iter++) {
-     
-     int arraySize = SIZEOF_ARRAY(pixelArray);
-     
-     for(int row = 0; row <= arraySize; row++) {
-       
-       if(row == arraySize - 1) {
-         pixelArray[row] = pixelArray[0];
-       }
-       else {
-         pixelArray[row] = pixelArray[row + 1];
-       }
-       
-     }
-     
-   }
-}
+
 
 void stripeMarquee1(int rpt) {
   for(int iter = 0; iter < rpt; iter++) {
