@@ -14,7 +14,7 @@
 #define MATRIX_HEIGHT 8
 //const int MATRIX_WIDTH = 18;
 //const int MATRIX_HEIGHT = 8;
-const int MATRIX_BRIGHTNESS = 65;
+const int MATRIX_BRIGHTNESS = 20;
 
 
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(
