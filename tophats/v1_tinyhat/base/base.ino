@@ -5,30 +5,39 @@
 
 #define PIN 6
 
-// Parameter 1 = number of pixels in strip
-// Parameter 2 = Arduino pin number (most are valid)
-// Parameter 3 = pixel type flags, add together as needed:
-//   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
-//   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
-//   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
-//   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(39, PIN, NEO_GRB + NEO_KHZ800);
-
-// IMPORTANT: To reduce NeoPixel burnout risk, add 1000 uF capacitor across
-// pixel power leads, add 300 - 500 Ohm resistor on first pixel's data input
-// and minimize distance between Arduino and first pixel.  Avoid connecting
-// on a live circuit...if you must, connect GND first.
 
 void setup() {
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
   strip.setBrightness(40);
+  pinMode(A0, INPUT_PULLUP);
+  digitalWrite(A0, HIGH);
+}
+
+void offAndPause() {
+  for(int i=0; i< strip.numPixels(); i++) {
+    strip.setPixelColor(i, 0);
+  }
+  strip.show();
+  delay(1500);
 }
 
 void loop() {
-  rainbowCycle3(20);
-  //rainbow(20);
+  //rainbowCycle3(20);
   //checker(500);
+  while(digitalRead(A0) == HIGH) {
+    rainbow(20);
+  }
+  offAndPause();
+  while(digitalRead(A0) == HIGH) {
+    rainbowCycle3(20);
+  }
+  offAndPause();
+  while(digitalRead(A0) == HIGH) {
+    checker(2000);
+  }
+  offAndPause();
 }
 
 void rainbow(uint8_t wait) {
@@ -43,11 +52,10 @@ void rainbow(uint8_t wait) {
   }
 }
 
-// Slightly different, this makes the rainbow equally distributed throughout
 void rainbowCycle(uint8_t wait) {
   uint16_t i, j;
 
-  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
+  for(j=0; j<256; j++) {
     for(i=0; i< strip.numPixels(); i++) {
       strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
     }
@@ -59,25 +67,25 @@ void rainbowCycle(uint8_t wait) {
 void rainbowCycle3(uint8_t wait) {
   uint16_t i, j;
 
-  for(j=0; j<256*5; j++) { // 5 cycles of all colors on wheel
-    for(i=0; i< strip.numPixels()/3; i++) {
-      strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
+  for(j=0; j<256; j++) { 
+    for(i=0; i< 11; i++) {
+      strip.setPixelColor(i, Wheel(((i * 256 / 11) + j) & 255));
     }
-    for(i=0; i< strip.numPixels()/3; i++) {
-      strip.setPixelColor(i+strip.numPixels()/3, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
+    for(i=0; i< 12; i++) {
+      strip.setPixelColor(i+11, Wheel(((i * 256 / 12) + j) & 255));
     }
-    for(i=0; i< strip.numPixels()/3; i++) {
-      strip.setPixelColor(i+2*(strip.numPixels()/3), Wheel(((i * 256 / strip.numPixels()) + j) & 255));
+    for(i=0; i< 13; i++) {
+      strip.setPixelColor(i+11+12, Wheel(((i * 256 / 13) + j) & 255));
     }
     strip.show();
     delay(wait);
   }
 }
 
-void checker(uint8_t wait) {
-
+void checker(uint16_t wait) {
+  
   uint16_t i;
-
+  
   for(i=0; i< strip.numPixels(); i++) {
     if(i%2) {
       strip.setPixelColor(i, strip.Color(0,255,255));
@@ -87,7 +95,7 @@ void checker(uint8_t wait) {
     }
     strip.show();
   }
-
+   
   delay(wait);
 
   for(i=0; i< strip.numPixels(); i++) {
@@ -100,12 +108,9 @@ void checker(uint8_t wait) {
     strip.show();
   }
   delay(wait);
-
+  
 }
 
-
-// Input a value 0 to 255 to get a color value.
-// The colours are a transition r - g - b - back to r.
 uint32_t Wheel(byte WheelPos) {
   WheelPos = 255 - WheelPos;
   if(WheelPos < 85) {
