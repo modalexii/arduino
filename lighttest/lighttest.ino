@@ -1,8 +1,8 @@
 #include <OctoWS2811.h>
 
-const int ledsPerStrip = 115*4;
-const int totalLEDs = 115*8;
-int brightness = 200;
+const int ledsPerStrip = 115*2;
+const int totalLEDs = 115*2*8;
+int brightness = 30;
 
 DMAMEM int displayMemory[ledsPerStrip*6];
 int drawingMemory[ledsPerStrip*6];
@@ -38,7 +38,6 @@ void colorWipe(int color, int wait)
 {
   for (int i=0; i < leds.numPixels(); i++) {
     leds.setPixel(i, color);
-    leds.show();
     //delayMicroseconds(wait);
   }
   delay(500);
