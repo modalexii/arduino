@@ -3,10 +3,21 @@
 #define PIXEL_PIN    6    
 #define PIXEL_COUNT 12
 
+/* GROUND PIN 3 AT BOOT TO DISABLE TOUCH */
+#define TOUCH_ENABLE_PIN 3
 #define TOUCH_PIN 0
-int touchThreshold = 2000;
-int cycleDelay = 300;
 
+bool touchEnabled = true;
+int touchThreshold = 2000;
+int wheelPosition = 0; // tracking to always return 255 identical delay values
+int wheelSpeed = 300; // moving wheel speed through recovery curve
+int wheelSpeedDefault = 300;
+uint32_t recoveryCurve[11] = {
+  0, 0, 0, 1, 2, 3, 6, 10, 15, 20, 50
+};
+uint32_t curveLength = sizeof(recoveryCurve)/sizeof(recoveryCurve[0]);
+uint32_t curvePosition = curveLength + 1; // set position high to disable curve
+  
 const uint8_t PROGMEM gamma8[] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
@@ -23,91 +34,98 @@ const uint8_t PROGMEM gamma8[] = {
   115,117,119,120,122,124,126,127,129,131,133,135,137,138,140,142,
   144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
   177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
-  215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
+  215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 
+};
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
 void setup() {
-  //Serial.begin(9600);
+  Serial.begin(9600);
+  pinMode(TOUCH_ENABLE_PIN, INPUT_PULLUP);
   strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
-  init();
+  initWash();
+  setMode();
 }
 
-void init() {
-  colorWipe(strip.Color(255,0,0));
+void initWash() {
+  colorWash(strip.Color(255,0,0));
   delay(1000);
-  colorWipe(strip.Color(0,255,0));
+  colorWash(strip.Color(0,255,0));
   delay(1000);
-  colorWipe(strip.Color(0,0,255));
+  colorWash(strip.Color(0,0,255));
   delay(1000);
-  colorWipe(strip.Color(0,0,0));
+  colorWash(strip.Color(0,0,0));
   delay(1000);
+}
+
+void setMode() {
+  touchEnabled = digitalRead(TOUCH_ENABLE_PIN);
 }
 
 void loop() {
 
-  uint16_t i, j;
-
-  for(j=0; j<256; j++) {
-    for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel((i+j) & 255));
-    }
-    strip.show();
-
-    int touchValue = touchRead(TOUCH_PIN);
+  uint32_t color;
+  
+  for(color=0; color<256; color++) { // foreach color
     
-    if(touchValue > touchThreshold) {
-      onTouch();
-    }
-    else {
-      delay(cycleDelay);
-    }
+    colorWash(Wheel(color));
+    delay(getDelay());
     
   }
   
 }
 
-void colorWipe(uint32_t c) {
+bool amBeingTouched() {
+  return (touchRead(TOUCH_PIN) > touchThreshold) ? true : false;
+}
+
+uint32_t getDelay() {
+
+  if(amBeingTouched()) {
+    Serial.println("Touched!");
+    colorWash(strip.Color(255,255,255)); // solid white for a moment
+    delay(200);
+    curvePosition = 0; // reset curve so we iterate through it
+  }
+  else if(wheelPosition < 256) { 
+    // we have not yet completed a full wheel rotation -
+    // releat the previous delay time and exit
+    Serial.print("COLOR: ");
+    Serial.print(wheelPosition);
+    Serial.print(" CURVE-X: ");
+    Serial.print(curvePosition);
+    Serial.print(" CURVE-Y: ");
+    Serial.println(wheelSpeed);
+    wheelPosition++;    
+    return wheelSpeed; // unchanged
+  }
+ 
+  // we have just completed a rotation
+  // figure out a new delay time
+  wheelPosition = 0; // reset wheel
+  Serial.println("RESET WHEEL");
+  
+  if(curvePosition < curveLength) { // we are somewhere in the recovery curve
+    wheelSpeed = recoveryCurve[curvePosition];
+    curvePosition++;
+  }
+  else { // we are not in the recovery curve
+    wheelSpeed = wheelSpeedDefault;
+  }
+  return wheelSpeed;
+}
+
+
+void colorWash(uint32_t c) {
+  // flood all pixels with a color
   for(uint16_t i=0; i<strip.numPixels(); i++) {
     strip.setPixelColor(i, c);
-    strip.show();
   }
+  strip.show();
 }
 
-void onTouch() {
-
-  uint16_t wait = 0;
-  
-  uint16_t i, j, k, l;
-
-  colorWipe(strip.Color(255,255,255));
-  delay(400);
-
-  for(j=0; j<256; j++) { // iterate colors
-    for(i=0; i<strip.numPixels(); i++) { // iterate pixels
-      strip.setPixelColor(i, Wheel((i+j) & 255));
-    }
-    strip.show();
-    delay(0);
-  }
-
-  while(wait < 10) {
-    for(j=0; j<256; j++) { // iterate colors
-      for(i=0; i<strip.numPixels(); i++) { // iterate pixels
-        strip.setPixelColor(i, Wheel((i+j) & 255));
-      }
-      strip.show();
-      delay(wait);
-    }
-    wait += 1;
-  }
-    
-}
-
-// Input a value 0 to 255 to get a color value.
-// The colours are a transition r - g - b - back to r.
-uint32_t Wheel(byte WheelPos) {
+uint32_t gWheel(byte WheelPos) {
+  // map int 0->255 to color red->red with gamma correction
   WheelPos = 255 - WheelPos;
   if(WheelPos < 85) {
     return strip.Color(
@@ -130,4 +148,18 @@ uint32_t Wheel(byte WheelPos) {
     pgm_read_byte(&gamma8[255 - WheelPos * 3]), 
     pgm_read_byte(&gamma8[0])
   );
+}
+
+uint32_t Wheel(byte WheelPos) {
+  // map int 0->255 to color red->red
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
 }
