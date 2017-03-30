@@ -1,7 +1,7 @@
 #include <Adafruit_NeoPixel.h>
 
 #define PIXEL_PIN    6    
-#define PIXEL_COUNT 12
+#define PIXEL_COUNT 13
 
 /* GROUND PIN 3 AT BOOT TO DISABLE TOUCH */
 #define TOUCH_ENABLE_PIN 3
