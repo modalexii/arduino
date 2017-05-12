@@ -29,6 +29,7 @@ void loop() {
   
   unsigned long timer = millis();
 
+  /*
   // turn on #1
   digitalWrite(4, HIGH);
 
@@ -43,6 +44,10 @@ void loop() {
 
   // turn off #1
   digitalWrite(4, LOW);
+  */
+
+  // turn on #2
+  digitalWrite(5, HIGH);
 
   // wait
   delay(3 * minute);
