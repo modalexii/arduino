@@ -8,13 +8,14 @@
 #define TOUCH_PIN 0
 
 bool touchEnabled = true;
-int touchThreshold = 2000;
+int touchThreshold = 1000;
 int wheelPosition = 0; // tracking to always return 255 identical delay values
 int wheelSpeed = 300; // moving wheel speed through recovery curve
 int wheelSpeedDefault = 300;
-uint32_t recoveryCurve[11] = {
-  0, 0, 0, 1, 2, 3, 6, 10, 15, 20, 50
+uint32_t recoveryCurve[12] = {
+  0, 0, 0, 1, 1, 2, 4, 8, 12, 18, 20, 50
 };
+
 uint32_t curveLength = sizeof(recoveryCurve)/sizeof(recoveryCurve[0]);
 uint32_t curvePosition = curveLength + 1; // set position high to disable curve
   
@@ -76,13 +77,17 @@ void loop() {
 }
 
 bool amBeingTouched() {
-  return (touchRead(TOUCH_PIN) > touchThreshold) ? true : false;
+  int val = touchRead(TOUCH_PIN);
+  Serial.print("capacitance: ");
+  Serial.println(val);
+  return (val > touchThreshold) ? true : false;
+  // return (touchRead(TOUCH_PIN) > touchThreshold) ? true : false;
 }
 
 uint32_t getDelay() {
 
   if(amBeingTouched()) {
-    Serial.println("Touched!");
+    //Serial.println("Touched!");
     colorWash(strip.Color(255,255,255)); // solid white for a moment
     delay(200);
     curvePosition = 0; // reset curve so we iterate through it
@@ -103,7 +108,7 @@ uint32_t getDelay() {
   // we have just completed a rotation
   // figure out a new delay time
   wheelPosition = 0; // reset wheel
-  Serial.println("RESET WHEEL");
+  //Serial.println("RESET WHEEL");
   
   if(curvePosition < curveLength) { // we are somewhere in the recovery curve
     wheelSpeed = recoveryCurve[curvePosition];
