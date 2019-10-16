@@ -4,23 +4,26 @@
 #include <TimerOne.h>
 #include <EEPROM.h>
 
+// ATMEGA328p, Board setting: Arduino/Genuino Uno
+
 #define DATA_PIN_A 4
 #define DATA_PIN_B 5
 #define DATA_PIN_C 6
 #define LED_TYPE WS2813
 #define COLOR_ORDER GRB
-#define LEDS_PER_STRIP 108
-#define UNPLAYABLE_LENGTH 18*2
+#define LEDS_PER_STRIP 107
+#define UNPLAYABLE_LENGTH 18*2-2
+
 int MAX_LUMA = 200; // will be overwritten if user value saved to eeprom
 int WIN_DETECT_THRESHOLD = 650; // will be overwritten if user value saved to eeprom
-#define IR_SENSOR_PIN A3
-#define ENCODER_BUTTON_PIN A2
-#define ENCODER_INC_PIN A0
-#define ENCODER_DEC_PIN A1
+#define IR_SENSOR_PIN A0
+#define ENCODER_BUTTON_PIN A3
+#define ENCODER_INC_PIN A1
+#define ENCODER_DEC_PIN A2
 
 CRGB leds[LEDS_PER_STRIP];
 ClickEncoder *encoder;
-int16_t last, value, difference;
+int16_t volatile last, value, difference;
 
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
@@ -60,6 +63,7 @@ void setBrightnessLoop() {
   while (true) {
     value += encoder->getValue();
     if (value != last) {
+      delay(15); // fixes fuckyness when spinning the encoder quickly
       difference = 4 * (value - last);
       last = value;
       MAX_LUMA = min(220, MAX_LUMA + difference);
@@ -119,6 +123,7 @@ void setSensitivityLoop() {
     // check new values and update interface for the next loop
     value += encoder->getValue();
     if (value != last) {
+      delay(15); // fixes fuckyness when spinning the encoder quickly
       difference = 4 * (value - last);
       last = value;
       WIN_DETECT_THRESHOLD += difference;
@@ -135,7 +140,7 @@ void setSensitivityLoop() {
       saveSettings();
       return;
     }
-  }
+  } // end while true
 }
 
 void checkSettingsRequest() {
@@ -166,6 +171,8 @@ void waitForReset() {
     FastLED.show();
     delay(blinkDelay);
     checkSettingsRequest();
+    Serial.print("waitForReset read: ");
+    Serial.println(analogRead(IR_SENSOR_PIN));
   }
   // for easing, fill out the strip quickly but perceptably 
  for (uint8_t px = LEDS_PER_STRIP; px > UNPLAYABLE_LENGTH; px--) {
@@ -192,7 +199,7 @@ void setup() {
   FastLED.setBrightness(MAX_LUMA);
   
   // IR Sensor
-  pinMode(A3,INPUT);
+  pinMode(IR_SENSOR_PIN,INPUT);
 
   loadSettings();
   

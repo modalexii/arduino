@@ -7,8 +7,7 @@
 // Connect to the GPS on the hardware port
 Adafruit_GPS GPS(&GPSSerial);
      
-// Set GPSECHO to 'false' to turn off echoing the raw GPS sentences to the Serial console
-#define GPSECHO false
+
 
 uint32_t timer = millis();
 

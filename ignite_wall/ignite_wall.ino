@@ -11,7 +11,7 @@ DMAMEM int displayMemory[ledsPerStrip*6];
 
 OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config);
 
-uint8_t luma = 50; //0-255
+uint8_t luma = 25; //0-255
 
 void setup() {
 
