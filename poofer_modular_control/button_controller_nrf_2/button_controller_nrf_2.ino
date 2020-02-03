@@ -1,6 +1,6 @@
 /* 
  *  Board settings:
- *  Teensy 3.2
+ *  Teensy 4
  */
  
 #include <SoftwareSerial.h>
@@ -256,7 +256,8 @@ void setup() {
   radio.begin();                  //Starting the Wireless communication
   //radio.setPayloadSize(4);
   radio.openWritingPipe(address); //Setting the address where we will send the data
-  radio.setPALevel(RF24_PA_HIGH); //You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
+  radio.setPALevel(RF24_PA_MAX); //You can set it as minimum or maximum depending on the distance between the transmitter and receiver.
+  radio.setDataRate(RF24_250KBPS);
   radio.stopListening();         
 
 } // setup()

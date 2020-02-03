@@ -148,7 +148,8 @@ void initRadio() {
   radio.begin();
   //radio.setPayloadSize(4);
   radio.openReadingPipe(1, address);  
-  radio.setPALevel(RF24_PA_HIGH);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver.
+  radio.setPALevel(RF24_PA_MAX);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver.
+  radio.setDataRate(RF24_250KBPS);
   radio.startListening();  
 } // /initRadio()
 
