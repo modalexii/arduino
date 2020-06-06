@@ -184,6 +184,14 @@ void setup() {
   //Serial.print("/");
   //Serial.print(TRIGGER_C_PIN);
   //Serial.println(" respectively");
+  // set INPUT_PULLDOWN first to stop relay chattering...
+  pinMode(TRIGGER_A_PIN, INPUT_PULLDOWN);
+  pinMode(TRIGGER_B_PIN, INPUT_PULLDOWN);
+  pinMode(TRIGGER_C_PIN, INPUT_PULLDOWN);
+  digitalWrite(TRIGGER_A_PIN, LOW);
+  digitalWrite(TRIGGER_B_PIN, LOW);
+  digitalWrite(TRIGGER_C_PIN, LOW);
+  // then set OUTPUT
   pinMode(TRIGGER_A_PIN, OUTPUT);
   pinMode(TRIGGER_B_PIN, OUTPUT);
   pinMode(TRIGGER_C_PIN, OUTPUT);
