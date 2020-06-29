@@ -31,7 +31,7 @@ void setup()
 }
 
 void display_hue(uint8_t hue) {
-  leds[0] = CHSV( hue, 255, 100 );
+  leds[0] = CHSV( hue, 255, 160 );
   FastLED.show();
 }
 

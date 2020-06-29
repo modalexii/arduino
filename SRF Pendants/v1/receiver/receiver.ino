@@ -1,8 +1,9 @@
+#include <avr/power.h>
 #include <VirtualWire.h>
 #include "FastLED.h"
 
 const int transmit_pin = 12;
-const int receive_pin = 8;//11;
+const int receive_pin = 11;
 const int transmit_en_pin = 3;
 
 #define NUM_LEDS 2
@@ -48,6 +49,14 @@ void setup() {
     rx_poll_clk_start = millis(); 
     pattern_step_clk_start = millis(); 
     max_home_radio_silence_clk_start = millis(); 
+
+    // disable features to save power
+    power_adc_disable();
+    power_spi_disable();
+    power_twi_disable();
+    power_timer2_disable();
+    power_usart0_disable();
+
 }
 
 void display_step_as_hue(uint8_t value) {
@@ -131,6 +140,7 @@ bool try_rx() {
 }
 
 void loop() {
+  
   rx_poll_clk_now = millis(); 
   pattern_step_clk_now = millis(); 
   max_home_radio_silence_clk_now = millis(); 
@@ -172,7 +182,6 @@ void loop() {
       display_step_as_hue(100);
     } else { // not home
       lonely();
-      //display_step_as_value(90);
     } 
     i_was_home_last_tick = i_am_home;
     pattern_step = pattern_step < 255 ? pattern_step + 1 : 0;
