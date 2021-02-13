@@ -70,7 +70,7 @@ void off() {
 
 void showBatteryIndicator() {
   uint8_t status_hue = 0;
-  int vcc = SystemStatus().getVCC();
+  uint16_t vcc = SystemStatus().getVCC();
   if (vcc > 2700) { status_hue = 100; }
   else if (vcc < 2200) { status_hue = 0; }
   else { status_hue = map(SystemStatus().getVCC(), 2200, 2700, 0, 100); }
