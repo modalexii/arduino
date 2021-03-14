@@ -10,6 +10,9 @@ FASTLED_USING_NAMESPACE
 #define BRIGHTNESS 250
 #define FRAMES_PER_SECOND 60
 CRGB leds[NUM_STRIPS][NUM_ANNOUNCIATOR_LEDS];
+unsigned long ann_blink_previous_timer = 0;
+const unsigned long ann_blink_interval = 1000 * 30;
+unsigned long ann_blink_duration = 50;
 uint8_t gHue = 0;
 
 bool fire = false;
@@ -18,44 +21,41 @@ int fire_timer = 0;
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
-#define alarm_pull_button 1
-#define mp3_pp_button 2
-#define mp3_ff_button 3
+#define alarm_pull_button 7
 #define servo_out 5
-#define led_announciator_out 6
+#define led_announciator_out 9
+#define led_stand_out 3
 
 uint8_t servo_angle = 42;
 Servo myservo;
-int pos = servo_angle;  
+int pos = servo_angle;
 
 SoftwareSerial mp3Link(15, 16); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
 
 void setup() {
+  Serial.begin(9600);
   mp3Link.begin(9600);
-  Serial.begin(115200);
+  while(!Serial) {}
   if (!myDFPlayer.begin(mp3Link)) {  //Use softwareSerial to communicate with mp3.
     Serial.println(F("Unable to communicate with MP3 Player"));
-    while(true);
+    while (true);
   }
   Serial.println(F("MP3 Player Online"));
   myDFPlayer.volume(20);  //Set volume value. From 0 to 30
   myDFPlayer.EQ(DFPLAYER_EQ_BASS);
   FastLED.addLeds<NEOPIXEL, led_announciator_out>(leds[0], NUM_ANNOUNCIATOR_LEDS);
   FastLED.setBrightness(BRIGHTNESS);
+  FastLED.clear();
   FastLED.show();
   myservo.attach(servo_out);
   myservo.write(servo_angle);
   pinMode(alarm_pull_button, INPUT_PULLUP);
-  pinMode(mp3_pp_button, OUTPUT);
-  pinMode(mp3_ff_button, OUTPUT);
-  digitalWrite(mp3_pp_button,HIGH);
-  digitalWrite(mp3_ff_button,HIGH);
 }
 
 void loop() {
-  if(fire) {
-    while(fire_timer > 0) {
+  if (fire) {
+    while (fire_timer > 0) {
       announciator_frame();
       FastLED.show();
       gHue = gHue < 255 ? gHue + 1 : 0;
@@ -68,15 +68,17 @@ void loop() {
     FastLED.show();
     delay(1000); // just for effect
     servo_unlock();
+    ann_blink_previous_timer = 0;
   }
-  else if(digitalRead(alarm_pull_button) == HIGH) {
+  else if (digitalRead(alarm_pull_button) == HIGH) {
     Serial.println("pulled!");
     fire = true;
     fire_timer = fire_timeout_s * 1000;
-    delay(50); // gives time for cartridge to actually get pulled down
+    delay(30); // gives time for cartridge to actually get pulled down
     servo_lock();
     myDFPlayer.next();
   }
+  announciator_blink();
 }
 
 void servo_unlock() {
@@ -93,12 +95,25 @@ void servo_lock() {
   }
 }
 
+void announciator_blink() {
+  unsigned long now = millis();
+  if (now - ann_blink_previous_timer > ann_blink_interval) {
+    FastLED.clear();
+    FastLED.show();
+    ann_blink_previous_timer = now;
+  }
+  else if (now - ann_blink_previous_timer > ann_blink_interval - ann_blink_duration) {
+    fill_solid(leds[0], NUM_ANNOUNCIATOR_LEDS, CHSV(0, 255, 255));
+    FastLED.show();
+  }
+}
+
 void announciator_frame() {
   uint8_t starthue = beatsin8(30, 0, 255);
   uint8_t endhue = beatsin8(60, 0, 255);
   if (starthue < endhue) {
-    fill_gradient(leds[0], NUM_ANNOUNCIATOR_LEDS, CHSV(starthue,255,255), CHSV(endhue,255,255), FORWARD_HUES);
+    fill_gradient(leds[0], NUM_ANNOUNCIATOR_LEDS, CHSV(starthue, 255, 255), CHSV(endhue, 255, 255), FORWARD_HUES);
   } else {
-    fill_gradient(leds[0], NUM_ANNOUNCIATOR_LEDS, CHSV(starthue,255,255), CHSV(endhue,255,255), BACKWARD_HUES);
+    fill_gradient(leds[0], NUM_ANNOUNCIATOR_LEDS, CHSV(starthue, 255, 255), CHSV(endhue, 255, 255), BACKWARD_HUES);
   }
-} 
+}
