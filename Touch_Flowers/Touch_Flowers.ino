@@ -7,7 +7,7 @@
 #define TOUCH_ENABLE_PIN 3
 #define TOUCH_PIN 0
 
-bool touchEnabled = true;
+bool touchEnabled = false;
 int touchThreshold = 1000;
 int wheelPosition = 0; // tracking to always return 255 identical delay values
 int wheelSpeed = 300; // moving wheel speed through recovery curve
@@ -77,11 +77,12 @@ void loop() {
 }
 
 bool amBeingTouched() {
-  int val = touchRead(TOUCH_PIN);
+  /*int val = touchRead(TOUCH_PIN);
   Serial.print("capacitance: ");
   Serial.println(val);
   return (val > touchThreshold) ? true : false;
-  // return (touchRead(TOUCH_PIN) > touchThreshold) ? true : false;
+  // return (touchRead(TOUCH_PIN) > touchThreshold) ? true : false;*/
+  return false;
 }
 
 uint32_t getDelay() {
