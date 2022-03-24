@@ -10,29 +10,27 @@
 #include <SPI.h> // Not actually used but needed to compile
 #endif
 
-RH_ASK driver;
-// RH_ASK driver(2000, 4, 5, 0); // ESP8266 or ESP32: do not use pin 11 or 2
-// RH_ASK driver(2000, 3, 4, 0); // ATTiny, RX on D3 (pin 2 on attiny85) TX on D4 (pin 3 on attiny85), 
-// RH_ASK driver(2000, PD14, PD13, 0); STM32F4 Discovery: see tx and rx on Orange and Red LEDS
+RH_ASK driver(2000, 4, 5, 0, true);
 
 void setup()
 {
-#ifdef RH_HAVE_SERIAL
-    Serial.begin(9600);	  // Debugging only
-#endif
-    if (!driver.init())
-#ifdef RH_HAVE_SERIAL
-         Serial.println("init failed");
-#else
-	;
-#endif
+//pinMode(15,OUTPUT);
+  if (!driver.init()) {
+    Serial.println("init failed");
+  }
+  Serial.begin(9600);	
+  Serial.println("Tx: Serial up");
+}
+
+void spam() {
+  uint8_t msg[4] = {byte(0x53), byte(0x52), byte(0x46), byte(0x11)};
+  driver.send((uint8_t *)msg, 4);
+  driver.waitPacketSent();
+  Serial.println("sending SRF0x11");
 }
 
 void loop()
 {
-    const char *msg = "hello";
-
-    driver.send((uint8_t *)msg, strlen(msg));
-    driver.waitPacketSent();
-    delay(200);
+    spam();
+    delay(50);
 }

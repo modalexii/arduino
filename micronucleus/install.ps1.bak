@@ -1,0 +1,11 @@
+
+Push-Location $PSScriptRoot
+
+$AVRDudeExe = "C:\Users\Kyle\AppData\Local\Arduino15\packages\arduino\tools\avrdude\6.3.0-arduino18\bin\avrdude.exe"
+$AVRDudeConf = "C:\Users\Kyle\AppData\Local\Arduino15\packages\arduino\tools\avrdude\6.3.0-arduino18\etc\avrdude.conf"
+$COMPort = "COM6"
+$Bootloader = "C:\Users\Kyle\Git\modalexii\arduino\micronucleus\t85_default.hex"
+
+IEX "$AVRDudeExe -C$AVRDudeConf -v -pattiny85 -carduino -P$COMPort -b19200 -e -U lfuse:w:0xE1:m -U hfuse:w:0xDD:m -U efuse:w:0xFE:m -Uflash:w:C:\Users\Kyle\Git\modalexii\arduino\micronucleus\t85_default.hex:i"
+
+Pop-Location
