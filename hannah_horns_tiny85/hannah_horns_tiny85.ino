@@ -3,12 +3,16 @@
  */
 #include <SystemStatus.h>
 #include <Bounce2.h>
-#include "FastLED.h"
-FASTLED_USING_NAMESPACE
+#include <FastLED.h>
 
-//#define adc_disable() (ADCSRA &= ~(1<<ADEN)) 
-//#define adc_enable() (ADCSRA |= (1 << ADEN))
+#include <avr/sleep.h>
+#include <avr/power.h>
+#include <avr/interrupt.h>
 
+#define adc_disable() (ADCSRA &= ~(1<<ADEN)) 
+#define adc_enable() (ADCSRA |= (1 << ADEN))
+
+#define SSR_PIN 4
 #define NUM_STRIPS 2
 #define NUM_LEDS_PER_STRIP 26
 #define BRIGHTNESS 100
@@ -19,53 +23,52 @@ uint8_t gHue = 0;
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 #define BUTTON_PIN 3
-Button button = Button();
+Bounce2::Button button = Bounce2::Button();
 
-#define SSR_PIN 4
 
 void setup() {
   pinMode(SSR_PIN, OUTPUT);
   digitalWrite(SSR_PIN, HIGH);
-  delay(250); 
+  pinMode(2, INPUT_PULLUP);
   FastLED.addLeds<NEOPIXEL, 0>(leds[0], NUM_LEDS_PER_STRIP);
   FastLED.addLeds<NEOPIXEL, 1>(leds[1], NUM_LEDS_PER_STRIP);
   FastLED.setBrightness(BRIGHTNESS);
   button.attach( BUTTON_PIN, INPUT_PULLUP );
-  button.interval(5);
+  button.interval(100);
   button.setPressedState(LOW); 
-  showBatteryIndicator();
-  //adc_disable();
+  adc_disable();
 }
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { off, showBatteryIndicator, dimmer_grad, brighter_grad };
-uint8_t gCurrentPatternNumber = 1;
+SimplePatternList gPatterns = { showBatteryIndicator, do_nothing, dimmer_grad, brighter_grad, off };
+uint8_t gCurrentPatternNumber = 0;
 
 void loop() {
   /*fill_rainbow( leds[0], NUM_LEDS_PER_STRIP, gHue, 3);
-  fill_rainbow( leds[1], NUM_LEDS_PER_STRIP, gHue, 3);
-  FastLED.show();  
-  FastLED.delay(1000/FRAMES_PER_SECOND);
-  EVERY_N_MILLISECONDS( 20 ) { gHue++; } */
+  fill_rainbow( leds[1], NUM_LEDS_PER_STRIP, gHue, 3);*/
+  //FastLED.delay(1000/FRAMES_PER_SECOND);
+  EVERY_N_MILLISECONDS( 20 ) { gHue++; } 
+  button.update();
+  //if ( button.rose() || button.fell() ) { nextPattern(); }
+  if ( button.changed() ) { nextPattern(); }
   gPatterns[gCurrentPatternNumber]();
   FastLED.show();
   FastLED.delay(1000/FRAMES_PER_SECOND);
-  button.update();
-  if (button.pressed()) { nextPattern(); }
 }
 
 void nextPattern() {
   gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE(gPatterns);
-  digitalWrite(SSR_PIN, HIGH);
+  FastLED.setBrightness(BRIGHTNESS);
 }
 
 void off() {
-  fill_solid(leds[0], NUM_LEDS_PER_STRIP, 0);
-  fill_solid(leds[1], NUM_LEDS_PER_STRIP, 0);
+  FastLED.clear();
   digitalWrite(SSR_PIN, LOW);
-  SystemStatus().SleepWakeOnInterrupt(0);
-  //nextPattern();
+  //sleepNow();
+  system_sleep(); 
+  digitalWrite(SSR_PIN, HIGH);
+  nextPattern();
 }
 
 void showBatteryIndicator() {
@@ -85,13 +88,21 @@ void showBatteryIndicator() {
 }
 
 void dimmer_grad() {
-  FastLED.setBrightness(90);
+  FastLED.setBrightness(BRIGHTNESS-10);
   fill_grad();
 }
 
 void brighter_grad() {
-  FastLED.setBrightness(180);
+  FastLED.setBrightness(BRIGHTNESS+80);
   fill_grad();
+}
+
+void fill(uint8_t hue) {
+  fill_solid(leds[0], NUM_LEDS_PER_STRIP, CHSV(hue,255,255));
+  fill_solid(leds[1], NUM_LEDS_PER_STRIP, CHSV(hue,255,255));
+}
+
+void do_nothing() {
 }
 
 void fill_grad() {
@@ -105,3 +116,25 @@ void fill_grad() {
     fill_gradient(leds[1], NUM_LEDS_PER_STRIP, CHSV(starthue,255,255), CHSV(endhue,255,255), BACKWARD_HUES);
   }
 } // fill_grad()
+
+// From http://interface.khm.de/index.php/lab/experiments/sleep_watchdog_battery/
+void system_sleep() {
+  GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
+  PCMSK |= _BV(PCINT3);                   // sense changes in PCINT2 = PB2
+  ADCSRA &= ~_BV(ADEN);                   // ADC off
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);    // replaces above statement
+
+  sleep_enable();                         // Sets the Sleep Enable bit in the MCUCR Register (SE BIT)
+  sei();                                  // Enable interrupts
+  sleep_cpu();                            // sleep
+
+  cli();                                  // Disable interrupts
+  PCMSK &= ~_BV(PCINT3);                  // Turn off INT0 (PB2) as interrupt pin
+  sleep_disable();                        // Clear SE bit
+  //ADCSRA |= _BV(ADEN);                    // ADC on
+
+  sei();                                  // Enable interrupts  
+}
+
+ISR(PCINT0_vect) {
+}
