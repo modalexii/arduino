@@ -9,10 +9,9 @@
 #define NUM_LEDS 2
 #define DATA_PIN 6
 CRGB leds[NUM_LEDS];
+CRGB pxbuf[NUM_LEDS]; // holder for rx'd values tha we're not ready to write to LEDs yet
 
-// how many hue steps to advance each pattern_tick_period when "chasing"
-// to catch up from the current H value to the last rx value
-const uint8_t chase_steps = 10;
+const uint8_t chase_steps = 10; // how many hue steps to advance each pattern_tick_period when "chasing" to catch up 
 uint8_t pattern_step = 0; // used in away pattern only
 const uint8_t pattern_tick_period = 10; // ms how frequently to draw new frame
 
@@ -21,26 +20,24 @@ uint8_t away_hue_base = 160; // will be overwritten initially by random value
 // RH_ASK driver(2000, 4, 5, true); // rx tx ptt ptt_invert // NodeMCU
 RH_ASK driver(2000, 9, 5, true); // rx tx ptt ptt_invert // 328p-au
 
-uint8_t current_hue;
-uint8_t last_rx_value;
 unsigned long last_rx_time; 
-const unsigned long rx_poll_period = 500; // was: 50
-const uint16_t rx_retry_count = 10000; // large # to ensure the radio chip has time to wake up
+const unsigned long rx_poll_period = 500; // how often (ms) between radio polls
+const uint16_t rx_retry_count = 10000; // poll retries - large # to ensure the radio chip has time to wake up
 
-const unsigned long max_home_rx_silence_period = 1000*30; // how long til we're decidedly away from home
+const unsigned long max_home_rx_silence_period = 1000*30; // how long (ms) til we're decidedly away from home
 
 uint8_t buf[RH_ASK_MAX_MESSAGE_LEN];
 uint8_t buflen = sizeof(buf);
-
 #define RADIO_EN_PIN 8
 
 void setup() {
   Serial.begin(115200); // needed!
-  driver.init();
+  driver.init(); // ASK library
   set_away_hue();
 
-  // disable features to save power
-  power_adc_disable();
+  power_adc_disable(); // disable ADC to save power
+
+  // turn radio chip off
   digitalWrite(RADIO_EN_PIN, LOW);
   pinMode(RADIO_EN_PIN, OUTPUT); 
   
@@ -54,7 +51,7 @@ void setup() {
 
 void set_away_hue() {
   /*
-   * Return a hue value to use for the away pattern if we've never been home.
+   * Set a hue value to use for the away pattern if we've never been home.
    * Make sure its a bit different from the previous value.
    */
   unsigned int away_hue_eeAddress = 0; 
@@ -86,14 +83,19 @@ void set_away_hue() {
 } // set_away_hue
 
 void chase_last_rx() {
-  CHSV new_hue = blend(CHSV(current_hue,255,255), CHSV(last_rx_value,255,255), chase_steps, SHORTEST_HUES);
-  leds[0] = new_hue;
-  leds[1] = new_hue;
-  current_hue = new_hue.hue;
+  /*
+   * Nudge the led hues towards the last recieved values in at most `chase_steps` chunks
+   * If we show rx'd values on the LEDs right away, they appear to jump since we only check the radio
+   * every rx_poll_period and may miss polls due to weak signal. It's much nicer to blend towards where 
+   * we need to be. chase_steps and pattern_tick_period together need to balance "getting to the new
+   * color quickly" versus "not jumping colors unappealingly"
+   */
+  leds[0] = blend(leds[0], pxbuf[0], chase_steps);
+  leds[1] = blend(leds[1], pxbuf[1], chase_steps);
 }
 
 void lonely() {
-  // the away from home pattern
+  // the away from home pattern - uses HSV for simplicity
   uint8_t wave_pos = triwave8(pattern_step);
   uint8_t delta = map(wave_pos, 0, 254, 0, 20);
   /*Serial.print("delta ");
@@ -123,18 +125,18 @@ bool try_rx() {
    * Returns true if successful.
    */
   set_radio_state(1);
-  // sleep while we wait for the radio to initilize 
-  //delay(80); // 52 seems to be the minimum here, 60 gives some tolerance // trying disabled in hopes that high rx_retry_count gets an rx at the earliest possible moment
+  // rather than actually wait for the chip to wake up, we just retry the RX a ton of times (rx_retry_count)
   bool rx_successful = false;
-  uint8_t buf[RH_ASK_MAX_MESSAGE_LEN];
-  uint8_t buflen = sizeof(buf);
+  //uint8_t buf[9];//[RH_ASK_MAX_MESSAGE_LEN];
+  //uint8_t buflen = sizeof(buf);
   for (uint16_t i = 0; i < rx_retry_count; i++) { // retry rx a few times while the chip is awake
     if (driver.recv(buf, &buflen)) {
       // if the first 3 bytes are "SRF", its a good message
       if( buf[0] == 0x53 && buf[1] == 0x52 && buf[2] == 0x46 ) {
-        last_rx_value = buf[3];
+        pxbuf[0].setRGB( buf[3], buf[4], buf[5]);        
+        pxbuf[1].setRGB( buf[6], buf[7], buf[8]);
         last_rx_time = millis();
-        away_hue_base = last_rx_value; // if we leave home, preserve the last value
+        away_hue_base = rgb2hsv_approximate(pxbuf[0]).hue; // if we leave home, preserve the last value
         rx_successful = true;
         break;
       }
@@ -145,17 +147,17 @@ bool try_rx() {
 } // try_rx
 
 void loop() {
+
   // radio polls
   EVERY_N_MILLISECONDS(rx_poll_period){
     try_rx();
   }
 
+  // pattern animation
   EVERY_N_MILLISECONDS(pattern_tick_period){
-    // pattern animation
-    //fill_solid(leds,NUM_LEDS,CHSV(last_rx_value,255,255));
     // decide if we are away from home or not
     if ( millis() - last_rx_time < max_home_rx_silence_period && last_rx_time > 0 ){
-      //gCurrentPatternNumber = 1; // we are home
+      gCurrentPatternNumber = 1; // we are home
     } 
     else {
       gCurrentPatternNumber = 0; // away
