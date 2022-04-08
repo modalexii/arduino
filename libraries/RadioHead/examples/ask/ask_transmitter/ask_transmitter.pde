@@ -10,6 +10,9 @@
 #include <SPI.h> // Not actually used but needed to compile
 #endif
 
+#include "FastLED.h"
+CRGB leds[1];
+
 RH_ASK driver(2000, 4, 5, 0, true);
 
 void setup()
@@ -20,6 +23,8 @@ void setup()
   }
   Serial.begin(9600);	
   Serial.println("Tx: Serial up");
+
+  FastLED.addLeds<NEOPIXEL, 5>(leds, 2);
 }
 
 void spam() {
