@@ -1,8 +1,9 @@
-#include <Servo.h>
+//#include <Servo.h>
+#include <PWMServo.h>
 #include "Arduino.h"
 #include "SoftwareSerial.h"
-#include "DFRobotDFPlayerMini.h"
 #include "FastLED.h"
+#include <arduino-timer.h>
 FASTLED_USING_NAMESPACE
 
 #define NUM_STRIPS 1
@@ -16,80 +17,105 @@ unsigned long ann_blink_duration = 50;
 uint8_t gHue = 0;
 
 bool fire = false;
-int fire_timer = 0;
-#define fire_timeout_s 5
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
-#define alarm_pull_button 7
-#define servo_out 5
-#define led_announciator_out 9
-#define led_stand_out 3
 
-uint8_t servo_angle = 42;
-Servo myservo;
+#define pin_mp3_act_status 11
+#define servo_out 9
+#define alarm_pull_button 7
+#define pin_mp3_play_next 4
+#define led_announciator_out 3
+#define pin_amp_relay 2
+
+
+uint8_t servo_angle = 75; // unlocked position, higher value = closer to vertical
+PWMServo myservo;
 int pos = servo_angle;
 
-SoftwareSerial mp3Link(15, 16); // RX, TX
-DFRobotDFPlayerMini myDFPlayer;
+Timer<10> timer; 
 
 void setup() {
   Serial.begin(9600);
-  mp3Link.begin(9600);
-  while(!Serial) {}
-  if (!myDFPlayer.begin(mp3Link)) {  //Use softwareSerial to communicate with mp3.
-    Serial.println(F("Unable to communicate with MP3 Player"));
-    while (true);
-  }
-  Serial.println(F("MP3 Player Online"));
-  myDFPlayer.volume(20);  //Set volume value. From 0 to 30
-  myDFPlayer.EQ(DFPLAYER_EQ_BASS);
+  Serial.println("~~~~~Dubstep Fire Alarm~~~~~");
+  myservo.attach(servo_out);
+  Serial.println("Set initial servo angle");
+  myservo.write(servo_angle);
+  delay(1000); // give cartirdge a moment to get home and depress button
   FastLED.addLeds<NEOPIXEL, led_announciator_out>(leds[0], NUM_ANNOUNCIATOR_LEDS);
   FastLED.setBrightness(BRIGHTNESS);
   FastLED.clear();
   FastLED.show();
-  myservo.attach(servo_out);
-  myservo.write(servo_angle);
   pinMode(alarm_pull_button, INPUT_PULLUP);
+  pinMode(pin_mp3_play_next, OUTPUT);
+  digitalWrite(pin_mp3_play_next, HIGH); 
+  pinMode(pin_mp3_act_status, INPUT_PULLUP);
+  pinMode(pin_amp_relay, OUTPUT);
+  digitalWrite(pin_amp_relay, LOW);
+  FastLED.clear();
+  FastLED.show();
+}
+
+bool playing() {
+  return !digitalRead(pin_mp3_act_status); // goes low while playing
+}
+
+void mp3_play_next() {
+  Serial.println("Triggering Audio");
+  digitalWrite(pin_mp3_play_next, LOW); 
+  // "release" trigger "button" by writing high in a moment
+  timer.in(250, [](void*) -> void { return digitalWrite(pin_mp3_play_next, HIGH); });
+}
+
+void switch_amp_relay(uint8_t state) {
+  Serial.print("Powering amp ");
+  Serial.println(state);
+  digitalWrite(pin_amp_relay, state);
 }
 
 void loop() {
   if (fire) {
-    while (fire_timer > 0) {
+    while (playing()) {
       announciator_frame();
       FastLED.show();
       gHue = gHue < 255 ? gHue + 1 : 0;
-      fire_timer -= 1 * FRAMES_PER_SECOND;
       FastLED.delay(FRAMES_PER_SECOND);
     }
+    Serial.println("Done playing");
+    switch_amp_relay(LOW);
     fire = false;
-    myDFPlayer.pause();
     FastLED.clear();
     FastLED.show();
     delay(1000); // just for effect
     servo_unlock();
+    delay(1000); // give cartridge time to return and depress the buttom
     ann_blink_previous_timer = 0;
   }
-  else if (digitalRead(alarm_pull_button) == HIGH) {
-    Serial.println("pulled!");
+  else if (digitalRead(alarm_pull_button) == HIGH) { // button is depressed (LOW) in the "unactivated" position
+    Serial.println("Pulled!");
     fire = true;
-    fire_timer = fire_timeout_s * 1000;
-    delay(30); // gives time for cartridge to actually get pulled down
+    switch_amp_relay(HIGH); // turn on amp now so it can spend the next few ms becoming operational
+    delay(200); // gives time for cartridge to actually get pulled down by user
     servo_lock();
-    myDFPlayer.next();
+    mp3_play_next();
+    delay(500); // time for mp3 player to respond and pull activity pin low
+  } else {
+    announciator_blink(); 
   }
-  announciator_blink();
+  timer.tick();
 }
 
 void servo_unlock() {
-  for (pos = 0; pos < servo_angle; pos++) {
+  Serial.println("Unlocking puller");
+  for (pos = 20; pos < servo_angle; pos++) {
     myservo.write(pos);
     delay(5);
   }
 }
 
 void servo_lock() {
-  for (pos = servo_angle; pos > 0; pos--) {
+  Serial.println("Locking puller");
+  for (pos = servo_angle; pos > 20; pos--) {
     myservo.write(pos);
     delay(5);
   }
@@ -103,6 +129,7 @@ void announciator_blink() {
     ann_blink_previous_timer = now;
   }
   else if (now - ann_blink_previous_timer > ann_blink_interval - ann_blink_duration) {
+    //Serial.println("Idle Blink");
     fill_solid(leds[0], NUM_ANNOUNCIATOR_LEDS, CHSV(0, 255, 255));
     FastLED.show();
   }
