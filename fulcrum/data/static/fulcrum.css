@@ -1,0 +1,188 @@
+/* custom fulcrum UI */
+
+@media screen and (max-resolution: 2dppx) {
+  html {
+    font-size: 4px;
+  }
+  body {
+    max-width: 100rem;
+  }
+}
+
+input#pin {
+  width: 100%;
+  text-align: center;
+  letter-spacing: 5rem;
+  background-color: inherit;
+  color: #f2f2e0;
+}
+
+button.mainmenu {
+  display: block;
+  width: 100%;
+  height: 25vh;
+  margin: 2rem 0px;
+}
+
+h1 {
+  font-size: 6rem;
+  text-align: center;
+  background-color: darkolivegreen;
+  padding: 1.5rem;
+}
+
+/* Checkbox Hack */
+input[type=checkbox] {
+  display:none;
+}
+
+td label {
+  display: inline-block;
+  cursor: pointer;
+  width: 100%;
+  padding: 3.1rem 0;
+  /* height: 45vh; */
+  /* align-items: stretch; */
+}
+
+table#play {
+  width: 100%;
+}
+
+td.playcontrol {
+  cursor: pointer;
+  padding: 3.1rem 0;
+  font-family: sans-serif;
+}
+
+/* Toggled State */
+td:has(> input[type=checkbox]:checked), td.playcontrol[engaged="1"] {
+    background: darkgoldenrod;
+    /* color: #fff; */
+    box-shadow: inset 0 0 1rem #000;
+}
+
+input[type=checkbox]:checked + label {
+  color: #000;
+}
+
+td {
+  text-align: center;
+  font-size: 7rem;
+}
+
+td, th {
+  /* padding: 3.1rem 0px; */
+  border: 0px;
+}
+
+td {
+  border: 0.1rem solid #000;
+  /* border-right: 0.5rem solid #ff8500; */
+}
+
+
+input[type="text"], input[type="password"] {
+  font-size: 7rem;
+  height: auto;
+  width: 20rem;
+  background-color: #f2f2f2;
+  font-family: monospace;
+}
+
+thead td {
+  border: none;
+  color: darkgoldenrod;
+  font-weight: bold;
+}
+
+label {
+  display: initial;
+}
+
+label.pretext {
+  font-size: 4rem;
+  /* line-height: 7rem; */
+  /* height: 9rem; */
+  /* display: inline-block; */
+}
+
+p {
+  font-size: 3rem;
+}
+
+label.playcontrol, td.playcontrol {
+  height: 45vh;
+  line-height: 45vh;
+  padding: 0;
+}
+
+#footer {
+  position: sticky;
+  padding: 0.8rem;
+  /* bottom: 0; */
+  width: 100%;
+  background: #f2f2f2;
+}
+
+#footer button {
+  margin: 0;
+}
+
+button#save {
+  float: right;
+}
+
+.prevent-select {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+}
+
+
+/* public milligram dark overay follows */
+
+body {
+  background: #2c2f34;
+  color: #f2f2f2;
+  /* max-width: 1000px; */
+}
+
+.navigation .title,
+.navigation-title {
+  color: #f2f2f2;
+}
+
+.navigation {
+  background: #34373c;
+  border-bottom: 0.1rem solid #1b1c1d;
+}
+
+.header {
+  background-color: #141518;
+}
+
+pre {
+  background: #141518;
+}
+
+.prettyprint {
+  color: #f2f2f2;
+}
+
+.prettyprint.lang-md * {
+  color: #f2f2f2 !important;
+}
+
+code {
+  background: #141518;
+}
+
+.prettyprint .atv {
+  color: rgba(73, 158, 223, 1);
+}
+
+
+td > label {
+    font-size: 7rem;
+}

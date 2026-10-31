@@ -14,7 +14,7 @@
 
 #define SSR_PIN 4
 #define NUM_STRIPS 2
-#define NUM_LEDS_PER_STRIP 26
+#define NUM_LEDS_PER_STRIP 30
 #define BRIGHTNESS 100
 #define FRAMES_PER_SECOND 60
 CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
@@ -24,7 +24,6 @@ uint8_t gHue = 0;
 
 #define BUTTON_PIN 3
 Bounce2::Button button = Bounce2::Button();
-
 
 void setup() {
   pinMode(SSR_PIN, OUTPUT);
@@ -41,14 +40,19 @@ void setup() {
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { showBatteryIndicator, do_nothing, dimmer_grad, brighter_grad, off };
+
+// Use One:
+SimplePatternList gPatterns = { showBatteryIndicator, do_nothing, static_pb_gradient, slow_rainbow_fade, sliding_gradient, off }; // erin
+//SimplePatternList gPatterns = { showBatteryIndicator, do_nothing, slow_rainbow_fade, hot_fire, off }; // hannah
+//SimplePatternList gPatterns = { showBatteryIndicator, do_nothing, slow_rainbow_fade, off }; // kyle
+
 uint8_t gCurrentPatternNumber = 0;
 
 void loop() {
   /*fill_rainbow( leds[0], NUM_LEDS_PER_STRIP, gHue, 3);
   fill_rainbow( leds[1], NUM_LEDS_PER_STRIP, gHue, 3);*/
   //FastLED.delay(1000/FRAMES_PER_SECOND);
-  EVERY_N_MILLISECONDS( 20 ) { gHue++; } 
+  EVERY_N_MILLISECONDS( 800 ) { gHue++; } // 800 is nice and slow
   button.update();
   //if ( button.rose() || button.fell() ) { nextPattern(); }
   if ( button.changed() ) { nextPattern(); }
@@ -65,7 +69,6 @@ void nextPattern() {
 void off() {
   FastLED.clear();
   digitalWrite(SSR_PIN, LOW);
-  //sleepNow();
   system_sleep(); 
   digitalWrite(SSR_PIN, HIGH);
   nextPattern();
@@ -97,12 +100,22 @@ void brighter_grad() {
   fill_grad();
 }
 
-void fill(uint8_t hue) {
-  fill_solid(leds[0], NUM_LEDS_PER_STRIP, CHSV(hue,255,255));
-  fill_solid(leds[1], NUM_LEDS_PER_STRIP, CHSV(hue,255,255));
+void do_nothing() {
 }
 
-void do_nothing() {
+void static_pb_gradient() {
+  fill_gradient(leds[0], NUM_LEDS_PER_STRIP, CHSV(160,255,255), CHSV(245,255,255), FORWARD_HUES);
+  fill_gradient(leds[1], NUM_LEDS_PER_STRIP, CHSV(160,255,255), CHSV(245,255,255), FORWARD_HUES);
+}
+
+void slow_rainbow_fade() {
+  fill_solid(leds[0], NUM_LEDS_PER_STRIP, CHSV(gHue,255,255));
+  fill_solid(leds[1], NUM_LEDS_PER_STRIP, CHSV(gHue,255,255));
+  apply_gamma();
+}
+
+void sliding_gradient() {
+  fill_grad();
 }
 
 void fill_grad() {
@@ -116,6 +129,18 @@ void fill_grad() {
     fill_gradient(leds[1], NUM_LEDS_PER_STRIP, CHSV(starthue,255,255), CHSV(endhue,255,255), BACKWARD_HUES);
   }
 } // fill_grad()
+
+void apply_gamma() {
+  // basic gamma correction, the cheap, quick & dirty way
+  for (uint16_t i = 0; i < NUM_LEDS_PER_STRIP; i++) {
+    //leds[0][i].r = dim8_video(leds[0][i].r);
+    leds[0][i].g = dim8_video(leds[0][i].g);
+    //leds[0][i].b = dim8_video(leds[0][i].b);
+    //leds[1][i].r = dim8_video(leds[1][i].r);
+    leds[1][i].g = dim8_video(leds[1][i].g);
+    //leds[1][i].b = dim8_video(leds[1][i].b);
+  }
+}
 
 // From http://interface.khm.de/index.php/lab/experiments/sleep_watchdog_battery/
 void system_sleep() {

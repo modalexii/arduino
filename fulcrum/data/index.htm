@@ -1,0 +1,21 @@
+%_head.htm%
+<h1>Enter PIN</h1>
+<input name="pin" id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="----"/>
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+    var p = document.getElementById("pin");
+    p.onkeyup = function(e) {
+        var target = e.srcElement || e.target;
+        var maxLength = parseInt(target.attributes["maxlength"].value, 10);
+        var myLength = target.value.length;
+        if (myLength >= maxLength) {
+            target.disabled = true;
+            document.cookie = "pin=" +  target.value;
+            window.location.href = "/menu";
+        }
+    }
+}); // /DOMContentLoaded    
+
+</script>
+%_foot.htm%

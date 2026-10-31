@@ -148,23 +148,10 @@ bool try_rx() {
 
 void loop() {
 
-  // radio polls
-  EVERY_N_MILLISECONDS(rx_poll_period){
-    try_rx();
-  }
-
-  // pattern animation
-  EVERY_N_MILLISECONDS(pattern_tick_period){
-    // decide if we are away from home or not
-    if ( millis() - last_rx_time < max_home_rx_silence_period && last_rx_time > 0 ){
-      gCurrentPatternNumber = 1; // we are home
-    } 
-    else {
-      gCurrentPatternNumber = 0; // away
-    }
-    gPatterns[gCurrentPatternNumber]();
-    FastLED.show();
-    pattern_step = pattern_step < 255 ? pattern_step + 1 : 0; // used by lonely()
-  }
+ pinMode(3, INPUT_PULLUP);
+ if(digitalRead(3) == HIGH) { leds[0] = CHSV(160,255,150); }
+ else if((digitalRead(3) == LOW)){ leds[0] = CHSV(0,255,150); }
+ FastLED.show();
+ delay(100);
   
 } // loop

@@ -95,7 +95,7 @@ void loop() {
     Serial.println("Pulled!");
     fire = true;
     switch_amp_relay(HIGH); // turn on amp now so it can spend the next few ms becoming operational
-    delay(200); // gives time for cartridge to actually get pulled down by user
+    //delay(200); // gives time for cartridge to actually get pulled down by user
     servo_lock();
     mp3_play_next();
     delay(500); // time for mp3 player to respond and pull activity pin low

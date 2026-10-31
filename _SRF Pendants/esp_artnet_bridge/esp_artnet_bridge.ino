@@ -70,7 +70,8 @@ void onDmxPacket(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t *
   Serial.print(universe);
   Serial.println();
 
-  if (universe == config.universe) {
+  //if (universe == config.universe) {
+  if (universe == 11) {
     // copy the data from the UDP packet over to the global universe buffer
     global.universe = universe;
     global.sequence = sequence;

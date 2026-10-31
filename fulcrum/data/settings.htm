@@ -1,0 +1,172 @@
+%_head.htm%
+<h1>Lever Map</h1>
+<table id="levers">
+    <thead>
+        <td>1</td>
+        <td>2</td>
+        <td>3</td>
+        <td>4</td>
+    </thead>
+    <tr>
+        <td><input type="checkbox" id="l1_r1a"><label for="l1_r1a" class="prevent-select">1A</label></td>
+        <td><input type="checkbox" id="l2_r1a"><label for="l2_r1a" class="prevent-select">1A</label></td>
+        <td><input type="checkbox" id="l3_r1a"><label for="l3_r1a" class="prevent-select">1A</label></td>
+        <td><input type="checkbox" id="l4_r1a"><label for="l4_r1a" class="prevent-select">1A</label></td>
+    </tr>
+    <tr>
+        <td><input type="checkbox" id="l1_r1b"><label for="l1_r1b" class="prevent-select">1B</label></td>
+        <td><input type="checkbox" id="l2_r1b"><label for="l2_r1b" class="prevent-select">1B</label></td>
+        <td><input type="checkbox" id="l3_r1b"><label for="l3_r1b" class="prevent-select">1B</label></td>
+        <td><input type="checkbox" id="l4_r1b"><label for="l4_r1b" class="prevent-select">1B</label></td>
+    </tr>
+    <tr>
+        <td><input type="checkbox" id="l1_r2a"><label for="l1_r2a" class="prevent-select">2A</label></td>
+        <td><input type="checkbox" id="l2_r2a"><label for="l2_r2a" class="prevent-select">2A</label></td>
+        <td><input type="checkbox" id="l3_r2a"><label for="l3_r2a" class="prevent-select">2A</label></td>
+        <td><input type="checkbox" id="l4_r2a"><label for="l4_r2a" class="prevent-select">2A</label></td>
+    </tr>
+    <tr>
+        <td><input type="checkbox" id="l1_r2b"><label for="l1_r2b" class="prevent-select">2B</label></td>
+        <td><input type="checkbox" id="l2_r2b"><label for="l2_r2b" class="prevent-select">2B</label></td>
+        <td><input type="checkbox" id="l3_r2b"><label for="l3_r2b" class="prevent-select">2B</label></td>
+        <td><input type="checkbox" id="l4_r2b"><label for="l4_r2b" class="prevent-select">2B</label></td>
+    </tr>
+</table>
+<!--
+<h1>DMX Map</h1>
+<label for="dmx_start" class="pretext">Start Channel (0-252): </label><input id="dmx_start" inputmode="numeric" maxlength=3 type="text">
+<table id="dmx">
+    <thead>
+        <td>N+0</td>
+        <td>N+1</td>
+        <td>N+2</td>
+        <td>N+3</td>
+    </thead>
+    <tr>
+        <td><input type="checkbox" id="d1_r1a"><label for="d1_r1a" class="prevent-select">1A</label></td>
+        <td><input type="checkbox" id="d2_r1a"><label for="d2_r1a" class="prevent-select">1A</label></td>
+        <td><input type="checkbox" id="d3_r1a"><label for="d3_r1a" class="prevent-select">1A</label></td>
+        <td><input type="checkbox" id="d4_r1a"><label for="d4_r1a" class="prevent-select">1A</label></td>
+    </tr>
+    <tr>
+        <td><input type="checkbox" id="d1_r1b"><label for="d1_r1b" class="prevent-select">1B</label></td>
+        <td><input type="checkbox" id="d2_r1b"><label for="d2_r1b" class="prevent-select">1B</label></td>
+        <td><input type="checkbox" id="d3_r1b"><label for="d3_r1b" class="prevent-select">1B</label></td>
+        <td><input type="checkbox" id="d4_r1b"><label for="d4_r1b" class="prevent-select">1B</label></td>
+    </tr>
+    <tr>
+        <td><input type="checkbox" id="d1_r2a"><label for="d1_r2a" class="prevent-select">2A</label></td>
+        <td><input type="checkbox" id="d2_r2a"><label for="d2_r2a" class="prevent-select">2A</label></td>
+        <td><input type="checkbox" id="d3_r2a"><label for="d3_r2a" class="prevent-select">2A</label></td>
+        <td><input type="checkbox" id="d4_r2a"><label for="d4_r2a" class="prevent-select">2A</label></td>
+    </tr>
+    <tr>
+        <td><input type="checkbox" id="d1_r2b"><label for="d1_r2b" class="prevent-select">2B</label></td>
+        <td><input type="checkbox" id="d2_r2b"><label for="d2_r2b" class="prevent-select">2B</label></td>
+        <td><input type="checkbox" id="d3_r2b"><label for="d3_r2b" class="prevent-select">2B</label></td>
+        <td><input type="checkbox" id="d4_r2b"><label for="d4_r2b" class="prevent-select">2B</label></td>
+    </tr>
+</table>
+-->
+<h1>Access PIN</h1>
+<label for="dmx_start" class="pretext">Change To: </label>
+<input id="pin" type="password" inputmode="numeric" maxlength="4" placeholder="----"/>
+<div id="footer">
+    <a href="/menu"><button id="return" class="button-outline">&#x276e; Return</button></a> <a href="#"><button id="save" onclick="save()">Save</button></a>
+</div>
+
+<script>
+    var config = %config_literal%;
+    /*var config = { // for debugging on local server
+        "pin": "0000",
+        "levers": [
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,1,0],
+            [0,0,0,1]
+        ],
+        "dmx": [
+            [1,0,0,0],
+            [0,1,0,0],
+            [0,0,1,0],
+            [0,0,0,1]
+        ],
+        "dmxstart": 0
+    } */
+    document.addEventListener("DOMContentLoaded", () => {
+    
+        /* stamp configuration over DOM */
+        for (let lever = 0; lever < config.levers.length; lever++) {
+            for (let i = 0; i < config.levers[lever].length; i++) {
+                if (i === 0) var control = "r1a";
+                if (i === 1) var control = "r1b";
+                if (i === 2) var control = "r2a";
+                if (i === 3) var control = "r2b";
+                if (config.levers[lever][i] === 1) {
+                    var config_number = lever + 1;
+                    var dom_name = `l${config_number}_${control}`;
+                    console.log("checking box for " + dom_name);
+                    document.getElementById(dom_name).checked = true;
+                }
+            }
+        }
+        /*for (let channel = 0; channel < config.dmx.length; channel++) {
+            for (let i = 0; i < config.dmx[channel].length; i++) {
+                if (i === 0) var control = "r1a";
+                if (i === 1) var control = "r1b";
+                if (i === 2) var control = "r2a";
+                if (i === 3) var control = "r2b";
+                if (config.dmx[channel][i] === 1) {
+                    var config_number = channel + 1;
+                    var dom_name = `d${config_number}_${control}`;
+                    console.log("checking box for " + dom_name);
+                    document.getElementById(dom_name).checked = true;
+                }
+            }
+        }
+        document.getElementById("dmx_start").value = config.dmxstart;*/
+        document.getElementById("pin").value = config.pin;
+        document.getElementById("pin").addEventListener("click", (event) => { 
+            event.target.type = "text"
+        });
+
+    }); // /DOMContentLoaded
+
+    function save() {
+        document.getElementById("save").disabled = true;
+        document.getElementById("save").innerText = 'Wait'
+        var new_config = config;
+        for (let lever = 0; lever < config.levers.length; lever++) {
+            var c = document.querySelectorAll(`[id^="l${lever+1}"]`);
+            for (let i = 0; i < config.levers[lever].length; i++) {
+                new_config.levers[lever] = [ Number(c[0].checked), Number(c[1].checked), Number(c[2].checked), Number(c[3].checked) ]
+            }   
+        }
+        /*for (let channel = 0; channel < config.dmx.length; channel++) {
+            var c = document.querySelectorAll(`[id^="d${channel+1}"]`);
+            for (let i = 0; i < config.dmx[channel].length; i++) {
+                new_config.dmx[channel] = [ Number(c[0].checked), Number(c[1].checked), Number(c[2].checked), Number(c[3].checked) ]
+            }   
+        }
+        new_config.dmxstart = document.getElementById("dmx_start").value;*/
+        new_config.pin = document.getElementById("pin").value;
+
+        let xhr = new XMLHttpRequest();
+        let url = "/settings";
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                document.getElementById("save").innerText = 'OK!';
+                window.location.href = "/menu";
+            } else {
+                console.log(xhr.status);
+                document.getElementById("save").innerText = 'Error';
+            }
+        };
+        xhr.send( JSON.stringify(new_config) );
+    }
+
+</script>
+
+%_foot.htm%

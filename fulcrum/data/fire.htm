@@ -1,0 +1,75 @@
+%_head.htm%
+<table id="play">
+    <tr>
+        <td id="1a" class="playcontrol prevent-select">1A</td>
+        <td id="1b" class="playcontrol prevent-select">1B</td>
+    </tr>
+    <tr>
+        <td id="2a" class="playcontrol prevent-select">2A</td>
+        <td id="2b" class="playcontrol prevent-select">2B</td>
+    </tr>
+</table>
+<script>
+    function uncheck(element) {
+        console.log(`Unchecking ${element.id}`);
+        
+    }
+    function phoneHome() {
+        let xhr = new XMLHttpRequest();
+        let url = "/fire";
+        xhr.open("POST", url, true);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                //
+            } else {
+                console.log(xhr.status);
+            }
+        };
+        xhr.send( `{"remotes":[
+            ${Number(document.getElementById('1a').getAttribute("engaged"))},
+            ${Number(document.getElementById('1b').getAttribute("engaged"))},
+            ${Number(document.getElementById('2a').getAttribute("engaged"))},
+            ${Number(document.getElementById('2b').getAttribute("engaged"))} 
+        ]}` );
+    }
+    function engaged(e) {
+        console.log(e);
+        e.target.setAttribute("engaged", 1);
+        phoneHome();
+    }
+    function disengaged(e) {
+        e.target.setAttribute("engaged", 0);
+        phoneHome();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        var cb = document.querySelectorAll('td.playcontrol');
+        cb.forEach((element) => {
+            element.addEventListener("mousedown", engaged, false);
+            element.addEventListener("touchstart", engaged, false);
+            element.addEventListener("mouseup", disengaged, false);
+            element.addEventListener("touchend", disengaged, false);
+        });
+    }); // /DOMContentLoaded
+
+    addEventListener('beforeunload', (event) => {
+        // disengage and phone home all 0's to avoid mobile "back" swipe leaving a control engaged
+        var cb = document.querySelectorAll('td.playcontrol');
+        cb.forEach((element) => {
+            element.setAttribute("engaged", 0);
+        });
+        phoneHome();
+    });
+    
+    addEventListener('unload', (event) => {
+        // disengage and phone home all 0's to avoid mobile "back" swipe leaving a control engaged
+        var cb = document.querySelectorAll('td.playcontrol');
+        cb.forEach((element) => {
+            element.setAttribute("engaged", 0);
+        });
+        phoneHome();
+    });
+</script>
+%_foot.htm%
